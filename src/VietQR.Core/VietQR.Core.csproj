@@ -22,7 +22,16 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageProjectUrl>https://github.com/Ngochiendev/vietqr-core</PackageProjectUrl>
     <PackageIcon>vietqr_icon.png</PackageIcon>
+    <!-- Release notes mặc định cho các bản build local / không chạy qua CI.
+         CI sẽ ghi đè bằng file version.props (see Import below) sinh từ git log. -->
+    <PackageReleaseNotes>See https://github.com/Ngochiendev/vietqr-core/releases for the latest release notes.</PackageReleaseNotes>
   </PropertyGroup>
+
+  <!-- CI (publish-nuget.yml) sinh file này ở repo root khi pack: chứa Version + PackageReleaseNotes
+       của lần build đó, sinh tự động từ git log. Import đặt sau PropertyGroup nên giá trị trong
+       version.props ghi đè được defaults phía trên. Build local không có file này → dùng defaults. -->
+  <Import Project="$(MSBuildProjectDirectory)\..\..\version.props"
+          Condition="Exists('$(MSBuildProjectDirectory)\..\..\version.props')" />
 
   <ItemGroup>
     <PackageReference Include="QRCoder" Version="1.8.1" />
@@ -40,7 +49,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+    <None Include="README.md" Pack="true" PackagePath="\" />
     <None Include="Resources\vietqr_icon.png" Pack="true" PackagePath="\" />
     <!-- Ảnh README dùng đường dẫn tương đối: pack cùng cấu trúc thư mục để NuGet.org render đúng -->
     <None Include="Resources\vietqr.png" Pack="true" PackagePath="src/VietQR.Core/Resources\" />

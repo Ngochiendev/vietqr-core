@@ -90,3 +90,6 @@ appsettings.Production.json.local
 *.vsp
 *.vspx
 tests/
+
+# Sinh bởi CI (publish-nuget.yml) khi pack - đừng commit
+version.props

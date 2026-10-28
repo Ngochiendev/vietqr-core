@@ -21,6 +21,9 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+        with:
+          # Cần full history để sinh Release Notes từ git log giữa 2 tag
+          fetch-depth: 0
 
       - name: Setup .NET SDKs (.NET 6, 8, 9, 10)
         uses: actions/setup-dotnet@v4
@@ -45,16 +48,102 @@ jobs:
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
           echo "Publishing VietQR.Core version: $VERSION"
 
+      - name: Generate version.props + release notes
+        run: |
+          set -eu
+          # Xác định phạm vi commit cho Release Notes:
+          #   - Tag push "v1.2.3": mọi commit kể từ tag TRƯỚC đó
+          #   - Push main: mọi commit kể từ tag cuối cùng trên nhánh
+          RANGE=""
+          POINTED_AT=$(git tag --points-at HEAD | sed 's/^v//' | head -1 || true)
+          if [ -n "$POINTED_AT" ]; then
+            PREV=$(git describe --tags --abbrev=0 "HEAD^1" 2>/dev/null | sed 's/^v//' || true)
+            [ -n "$PREV" ] && RANGE="${PREV}..HEAD"
+          else
+            LAST=$(git describe --tags --abbrev=0 2>/dev/null | sed 's/^v//' || true)
+            [ -n "$LAST" ] && RANGE="${LAST}..HEAD"
+          fi
+
+          if [ -n "$RANGE" ]; then
+            LOG=$(git log "$RANGE" --max-count=30 --pretty=format:'%s%n%h')
+          else
+            LOG=$(git log --max-count=5 --pretty=format:'%s%n%h')
+          fi
+
+          VERSION="$VERSION" LOG="$LOG" python3 - <<'PY'
+          import html, os, re
+
+          version = os.environ["VERSION"]
+
+          # LOG = luân phiên "<subject>\n<hash>"
+          raw = [l for l in os.environ.get("LOG", "").splitlines() if l.strip()]
+          commits = [(raw[i].strip(), raw[i + 1].strip()) for i in range(0, len(raw) - 1, 2)]
+
+          # Phân loại conventional commits, phong cách "New feature —", "Fix —"
+          PREFIX_RE = re.compile(r"^(feat|feature|fix|perf|refactor|build|ci|docs|chore|style|test)(\([^)]*\))?\s*:\s*", re.I)
+          LABELS = {
+              "feat": "**New feature** — ", "feature": "**New feature** — ",
+              "fix": "**Fix** — ", "perf": "**Performance** — ",
+              "refactor": "**Change** — ",
+              "build": "**Build** — ", "ci": "**Build** — ",
+              "docs": "**Docs** — ",
+              "chore": "**Chore** — ", "style": "**Chore** — ",
+              "test": "**Tests** — ",
+          }
+          def bullet(subject, sha):
+              m = PREFIX_RE.match(subject)
+              if m:
+                  kind = m.group(1).lower()
+                  return f"{LABELS[kind]}{subject[m.end():].strip()} ({sha})"
+              return f"{subject} ({sha})"
+
+          notes_md = [bullet(s, h) for s, h in commits]
+
+          # --- 1) version.props cho csproj (XML, escape) ---
+          xml_notes = [html.escape(f"{s} ({h})", quote=False) for s, h in commits]
+          if not xml_notes:
+              xml_notes = [f"Maintenance release {html.escape(version)}"]
+
+          with open("version.props", "w", encoding="utf-8") as f:
+              f.write("<Project>\n  <PropertyGroup>\n")
+              f.write(f"    <Version>{html.escape(version)}</Version>\n")
+              f.write("    <PackageReleaseNotes>\n" + "\n".join(xml_notes) + "\n    </PackageReleaseNotes>\n")
+              f.write("  </PropertyGroup>\n</Project>\n")
+
+          # --- 2) release-notes.md cho GitHub Release (markdown) ---
+          body = [f"## What's changed in {version}", ""]
+          body.extend(f"- {n}" for n in notes_md)
+          body += [
+              "",
+              "## NuGet",
+              f"Install: `dotnet add package VietQR.Core --version {version}`",
+              f"Package page: https://www.nuget.org/packages/VietQR.Core/{version}",
+              "",
+              "## Downloads",
+              "`.nupkg` file is attached below — or install directly from [nuget.org](https://www.nuget.org/packages/VietQR.Core).",
+          ]
+          with open("release-notes.md", "w", encoding="utf-8") as f:
+              f.write("\n".join(body) + "\n")
+          PY
+
+          echo "----- version.props -----"
+          cat version.props
+          echo "----- release-notes.md -----"
+          cat release-notes.md
+
       - name: Restore dependencies
         run: dotnet restore src/VietQR.Core/VietQR.Core.csproj
 
       - name: Build & Pack VietQR.Core
         run: dotnet pack src/VietQR.Core/VietQR.Core.csproj -c Release -p:Version=$VERSION -o ./nupkgs
 
-      - name: Verify packed content (README + images)
+      - name: Verify packed content (README + images + release notes)
         run: |
           unzip -l ./nupkgs/VietQR.Core.$VERSION.nupkg | grep -E \
             'README.md|vietqr.png|napas247.png|docs/image/(qr_only|compact|print).png'
+          # Release notes phải nằm trong nuspec của chính phiên bản vừa pack
+          unzip -p ./nupkgs/VietQR.Core.$VERSION.nupkg VietQR.Core.nuspec \
+            | grep -B1 -A6 '<releaseNotes>'
 
       - name: NuGet Login (OIDC Trusted Publishing)
         id: login
@@ -69,18 +158,23 @@ jobs:
             --source https://api.nuget.org/v3/index.json \
             --skip-duplicate
 
-      - name: Auto create Git tag (release marker)
-        if: github.ref == 'refs/heads/main'
+      - name: Create GitHub Release (notes + nupkg asset)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -eu
           TAG="v$VERSION"
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git fetch --tags
-          # Skip nếu tag đã tồn tại (trường hợp re-run cùng commit)
-          if git rev-parse -q --verify "refs/tags/$TAG" > /dev/null; then
-            echo "Tag $TAG đã tồn tại, bỏ qua."
-            exit 0
+
+          if gh release view "$TAG" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release $TAG đã tồn tại (re-run) — cập nhật notes + assets."
+            gh release upload "$TAG" -R "$GITHUB_REPOSITORY" ./nupkgs/*.nupkg --clobber
+            gh release edit "$TAG" -R "$GITHUB_REPOSITORY" --notes-file release-notes.md --latest
+          else
+            gh release create "$TAG" \
+              -R "$GITHUB_REPOSITORY" \
+              --target "$GITHUB_SHA" \
+              --title "VietQR.Core $VERSION" \
+              --notes-file release-notes.md \
+              ./nupkgs/*.nupkg
+            echo "Đã tạo tag $TAG + GitHub Release với asset .nupkg"
           fi
-          git tag -a "$TAG" -m "VietQR.Core $VERSION (auto-release by GitHub Actions)"
-          git push origin "$TAG"
-          echo "Đã tạo tag $TAG"
