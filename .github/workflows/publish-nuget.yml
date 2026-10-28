@@ -22,12 +22,14 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup .NET SDKs (.NET 6 and .NET 8)
+      - name: Setup .NET SDKs (.NET 6, 8, 9, 10)
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: |
             6.0.x
             8.0.x
+            9.0.x
+            10.0.x
 
       - name: Compute package version
         run: |

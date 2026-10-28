@@ -1,7 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
+    <!-- Local build bằng SDK 8 chỉ tạo net6/net8; khi SDK >= 9 (CI hoặc local cài SDK mới) sẽ thêm net9/net10 -->
     <TargetFrameworks>net6.0;net8.0</TargetFrameworks>
+    <TargetFrameworks Condition="$([MSBuild]::VersionGreaterThanOrEquals('$(NETCoreSdkVersion)', '9.0.100'))">$(TargetFrameworks);net9.0;net10.0</TargetFrameworks>
     <RootNamespace>VietQR.Core</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>

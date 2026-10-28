@@ -8,13 +8,13 @@
 
 <p align="center">
   <b>Thư viện .NET và Web API hỗ trợ tạo chuỗi & render ảnh mã QR thanh toán theo chuẩn VietQR (NAPAS247)</b><br>
-  .NET 8 / .NET 6 &bull; SkiaSharp &bull; Chạy Offline 100% &bull; Tối ưu hiệu năng
+  .NET 10 / 8 / 6 &bull; SkiaSharp &bull; Chạy Offline 100% &bull; Tối ưu hiệu năng
 </p>
 
 <p align="center">
   <a href="https://www.nuget.org/packages/VietQR.Core"><img src="https://img.shields.io/nuget/v/VietQR.Core.svg?style=flat-square&logo=nuget&color=004880" alt="NuGet Version" /></a>
   <a href="https://www.nuget.org/packages/VietQR.Core"><img src="https://img.shields.io/nuget/dt/VietQR.Core.svg?style=flat-square&logo=nuget&color=0078D4" alt="NuGet Downloads" /></a>
-  <a href="#"><img src="https://img.shields.io/badge/.NET-8.0_LTS_%7C_6.0-512BD4?style=flat-square&logo=dotnet&logoColor=white" alt=".NET Support" /></a>
+  <a href="#"><img src="https://img.shields.io/badge/.NET-10.0_%7C_8.0_%7C_6.0-512BD4?style=flat-square&logo=dotnet&logoColor=white" alt=".NET Support" /></a>
   <a href="#"><img src="https://img.shields.io/badge/C%23-12.0-239120?style=flat-square&logo=csharp&logoColor=white" alt="C# 12" /></a>
   <a href="#"><img src="https://img.shields.io/badge/Standard-NAPAS247_EMVCo-005BAA?style=flat-square" alt="Standard NAPAS247" /></a>
   <a href="#"><img src="https://img.shields.io/badge/Graphics-SkiaSharp_4.x-E65100?style=flat-square" alt="SkiaSharp 4.x" /></a>
