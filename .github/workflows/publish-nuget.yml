@@ -55,16 +55,17 @@ jobs:
           #   - Tag push "v1.2.3": mọi commit kể từ tag TRƯỚC đó
           #   - Push main: mọi commit kể từ tag cuối cùng trên nhánh
           RANGE=""
-          POINTED_AT=$(git tag --points-at HEAD | sed 's/^v//' | head -1 || true)
+          POINTED_AT=$(git tag --points-at HEAD | head -1 || true)
           if [ -n "$POINTED_AT" ]; then
-            PREV=$(git describe --tags --abbrev=0 "HEAD^1" 2>/dev/null | sed 's/^v//' || true)
+            PREV=$(git describe --tags --abbrev=0 "HEAD^1" 2>/dev/null || true)
+            # RANGE giữ nguyên prefix "v" của tag (đúng revision git cần)
             [ -n "$PREV" ] && RANGE="${PREV}..HEAD"
           else
-            LAST=$(git describe --tags --abbrev=0 2>/dev/null | sed 's/^v//' || true)
+            LAST=$(git describe --tags --abbrev=0 2>/dev/null || true)
             [ -n "$LAST" ] && RANGE="${LAST}..HEAD"
           fi
 
-          if [ -n "$RANGE" ]; then
+          if [ -n "$RANGE" ] && git rev-list "$RANGE" >/dev/null 2>&1; then
             LOG=$(git log "$RANGE" --max-count=30 --pretty=format:'%s%n%h')
           else
             LOG=$(git log --max-count=5 --pretty=format:'%s%n%h')
