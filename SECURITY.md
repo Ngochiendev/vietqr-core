@@ -27,7 +27,3 @@ Nếu bạn phát hiện bất kỳ lỗ hổng bảo mật nào trong dự án,
    - Đánh giá mức độ ảnh hưởng (Nghiêm trọng / Trung bình / Thấp).
    - Đề xuất giải pháp khắc phục (nếu có).
 
-## 4. Cam Kết Xử Lý & Phản Hồi
-- **Xác nhận ban đầu:** Trong vòng **24 - 48 giờ** làm việc kể từ khi nhận được báo cáo.
-- **Đánh giá & Thẩm định:** Trong vòng **3 - 5 ngày** làm việc.
-- **Phát hành bản vá (Security Patch):** Sẽ được ưu tiên triển khai và cập nhật ngay lập tức vào nhánh chính sau khi xác minh tính an toàn.
