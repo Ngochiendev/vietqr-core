@@ -19,7 +19,9 @@ public sealed class CompactTemplate : IQrTemplate
             template: "compact",
             accountNo: options.AccountNo,
             accountName: options.AccountName,
-            amount: options.Amount,
+            amount: options.Amount is > 0
+                ? options.Amount.Value.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                : null,
             description: options.Description);
     }
 }
