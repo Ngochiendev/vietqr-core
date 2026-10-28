@@ -1,0 +1,46 @@
+name: Publish to NuGet
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+
+jobs:
+  publish:
+    name: Build & Publish Package
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDKs (.NET 6 and .NET 8)
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: |
+            6.0.x
+            8.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore src/VietQR.Core/VietQR.Core.csproj
+
+      - name: Build & Pack VietQR.Core
+        run: dotnet pack src/VietQR.Core/VietQR.Core.csproj -c Release -o ./nupkgs
+
+      - name: NuGet Login (OIDC Trusted Publishing)
+        id: login
+        uses: NuGet/login@v1
+        with:
+          user: hiendev.official
+
+      - name: Push to NuGet
+        run: |
+          dotnet nuget push ./nupkgs/*.nupkg \
+            --api-key ${{ steps.login.outputs.NUGET_API_KEY }} \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
