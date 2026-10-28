@@ -40,6 +40,10 @@
   <ItemGroup>
     <None Include="..\..\README.md" Pack="true" PackagePath="\" />
     <None Include="Resources\vietqr_icon.png" Pack="true" PackagePath="\" />
+    <!-- Ảnh README dùng đường dẫn tương đối: pack cùng cấu trúc thư mục để NuGet.org render đúng -->
+    <None Include="Resources\vietqr.png" Pack="true" PackagePath="src/VietQR.Core/Resources\" />
+    <None Include="Resources\napas247.png" Pack="true" PackagePath="src/VietQR.Core/Resources\" />
+    <None Include="..\..\docs\image\*.png" Pack="true" PackagePath="docs\image\" />
   </ItemGroup>
 
   <ItemGroup>

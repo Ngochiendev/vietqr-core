@@ -1,9 +1,9 @@
 # VietQR Core (NAPAS247)
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/Ngochiendev/vietqr-core/main/src/VietQR.Core/Resources/vietqr.png" alt="VietQR Logo" width="160" />
+  <img src="src/VietQR.Core/Resources/vietqr.png" alt="VietQR Logo" width="160" />
   &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-  <img src="https://raw.githubusercontent.com/Ngochiendev/vietqr-core/main/src/VietQR.Core/Resources/napas247.png" alt="NAPAS247 Logo" width="160" />
+  <img src="src/VietQR.Core/Resources/napas247.png" alt="NAPAS247 Logo" width="160" />
 </p>
 
 <p align="center">
@@ -30,7 +30,7 @@ Hệ thống hỗ trợ 3 mẫu giao diện xuất ra (Base64 PNG) được lưu
 
 |                                                        `qr_only` (500 × 500 px)                                                        |                                                 `compact` (600 × 585 px) - _Mặc định_                                                  |                                                       `print` (600 × 745 px)                                                       |
 | :------------------------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------------------------------: |
-| <img src="https://raw.githubusercontent.com/Ngochiendev/vietqr-core/main/docs/image/qr_only.png" alt="Template QR Only" width="220" /> | <img src="https://raw.githubusercontent.com/Ngochiendev/vietqr-core/main/docs/image/compact.png" alt="Template Compact" width="220" /> | <img src="https://raw.githubusercontent.com/Ngochiendev/vietqr-core/main/docs/image/print.png" alt="Template Print" width="220" /> |
+| <img src="docs/image/qr_only.png" alt="Template QR Only" width="220" /> | <img src="docs/image/compact.png" alt="Template Compact" width="220" /> | <img src="docs/image/print.png" alt="Template Print" width="220" /> |
 |                                                            **Mẫu Tinh Gọn**                                                            |                                                         **Mẫu Thẻ Tiêu Chuẩn**                                                         |                                                       **Mẫu In Ấn Mở Rộng**                                                        |
 |                                               Chỉ gồm mã QR vuông kèm logo VietQR ở tâm.                                               |                              Thẻ thanh toán đầy đủ Header VietQR, khung viền, logo NAPAS247 & Ngân hàng.                               |         Hiển thị chi tiết: Số tiền (VNĐ), Nội dung CK, Tên chủ TK, Số TK in đậm, Tên NH. Tự co giãn font chống tràn viền.          |
 

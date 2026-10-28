@@ -1,7 +1,10 @@
 name: Publish to NuGet
 
+# Publish tự động mỗi lần push lên main, tag v*.*.* (release chính thức), hoặc chạy tay.
 on:
   push:
+    branches:
+      - main
     tags:
       - "v*.*.*"
   workflow_dispatch:
@@ -13,7 +16,7 @@ jobs:
 
     permissions:
       id-token: write
-      contents: read
+      contents: write
 
     steps:
       - name: Checkout Code
@@ -26,11 +29,30 @@ jobs:
             6.0.x
             8.0.x
 
+      - name: Compute package version
+        run: |
+          # Push tag v1.2.3 => version 1.2.3 (release chính thức)
+          # Push main => major.minor lấy từ csproj + số build (run_number) => 1.0.42
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            VERSION="${GITHUB_REF#refs/tags/v}"
+          else
+            BASE=$(awk -F'[<>]' '/<Version>/{print $3; exit}' src/VietQR.Core/VietQR.Core.csproj)
+            MAJOR_MINOR=$(echo "$BASE" | cut -d. -f1-2)
+            VERSION="${MAJOR_MINOR}.${GITHUB_RUN_NUMBER}"
+          fi
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "Publishing VietQR.Core version: $VERSION"
+
       - name: Restore dependencies
         run: dotnet restore src/VietQR.Core/VietQR.Core.csproj
 
       - name: Build & Pack VietQR.Core
-        run: dotnet pack src/VietQR.Core/VietQR.Core.csproj -c Release -o ./nupkgs
+        run: dotnet pack src/VietQR.Core/VietQR.Core.csproj -c Release -p:Version=$VERSION -o ./nupkgs
+
+      - name: Verify packed content (README + images)
+        run: |
+          unzip -l ./nupkgs/VietQR.Core.$VERSION.nupkg | grep -E \
+            'README.md|vietqr.png|napas247.png|docs/image/(qr_only|compact|print).png'
 
       - name: NuGet Login (OIDC Trusted Publishing)
         id: login
@@ -44,3 +66,19 @@ jobs:
             --api-key ${{ steps.login.outputs.NUGET_API_KEY }} \
             --source https://api.nuget.org/v3/index.json \
             --skip-duplicate
+
+      - name: Auto create Git tag (release marker)
+        if: github.ref == 'refs/heads/main'
+        run: |
+          TAG="v$VERSION"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch --tags
+          # Skip nếu tag đã tồn tại (trường hợp re-run cùng commit)
+          if git rev-parse -q --verify "refs/tags/$TAG" > /dev/null; then
+            echo "Tag $TAG đã tồn tại, bỏ qua."
+            exit 0
+          fi
+          git tag -a "$TAG" -m "VietQR.Core $VERSION (auto-release by GitHub Actions)"
+          git push origin "$TAG"
+          echo "Đã tạo tag $TAG"
