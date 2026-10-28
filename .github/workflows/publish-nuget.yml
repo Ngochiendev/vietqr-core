@@ -1,10 +1,10 @@
 name: Publish to NuGet
 
-# Publish khi bạn push tag phiên bản: v1.1.1, v1.1.2, ...
-# Release notes = mọi commit kể từ tag trước (phân loại kiểu NewtonSoft).
 on:
   push:
+    branches: [main]
     tags: ["v*.*.*"]
+  workflow_dispatch:
 
 permissions:
   id-token: write
@@ -16,21 +16,36 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # full history + tags (cần cho git log giữa 2 tag)
+          fetch-depth: 0
 
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: 10.0.x # SDK mới build được mọi TFM (net6 -> net10)
+          dotnet-version: 10.0.x
 
       - name: Version + release notes
         run: |
-          VERSION="${GITHUB_REF#refs/tags/v}"
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            # Đã có tag thủ công -> dùng đúng version đó
+            VERSION="${GITHUB_REF#refs/tags/v}"
+          else
+            # Tính version kế tiếp: major.minor từ csproj, patch = tag cuối + 1
+            MAJMIN=$(awk -F'[<>]' '/<Version>/{print $3; exit}' src/VietQR.Core/VietQR.Core.csproj | cut -d. -f1-2)
+            LAST=$(git describe --tags --abbrev=0 2>/dev/null | sed 's/^v//' || true)
+            if [ -z "$LAST" ]; then
+              VERSION="${MAJMIN}.1"
+            elif [[ "$LAST" == "${MAJMIN}."* ]]; then
+              VERSION="${MAJMIN}.$(( ${LAST##*.} + 1 ))"
+            else
+              # Tag cuối thuộc major.minor khác (đã đổi trong csproj) -> chạm mốc mới .1
+              VERSION="${MAJMIN}.1"
+            fi
+          fi
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
-          # Commit kể từ tag TRƯỚC tag vừa push
-          LAST=$(git describe --tags --abbrev=0 "HEAD^1" 2>/dev/null || true)
-          if [ -n "$LAST" ] && git rev-list "$LAST..HEAD" >/dev/null 2>&1; then
-            LOG=$(git log "$LAST..HEAD" --max-count=30 --pretty=format:'%s%n%h')
+          # Commit kể từ tag TRƯỚC (giữ prefix 'v' cho git)
+          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || true)
+          if [ -n "$LAST_TAG" ] && git rev-list "$LAST_TAG..HEAD" >/dev/null 2>&1; then
+            LOG=$(git log "$LAST_TAG..HEAD" --max-count=30 --pretty=format:'%s%n%h')
           else
             LOG=$(git log --max-count=5 --pretty=format:'%s%n%h')
           fi
@@ -96,4 +111,12 @@ jobs:
       - name: Create GitHub Release (nupkg asset)
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release create "v$VERSION" --title "v$VERSION" --latest --notes-file release-notes.md ./nupkgs/*.nupkg
+        run: |
+          if gh release view "v$VERSION" -R "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release v$VERSION đã tồn tại (re-run) — cập nhật notes + asset."
+            gh release upload "v$VERSION" -R "$GITHUB_REPOSITORY" ./nupkgs/*.nupkg --clobber
+            gh release edit "v$VERSION" -R "$GITHUB_REPOSITORY" --notes-file release-notes.md --latest
+          else
+            gh release create "v$VERSION" -R "$GITHUB_REPOSITORY" \
+              --title "v$VERSION" --latest --notes-file release-notes.md ./nupkgs/*.nupkg
+          fi
