@@ -11,6 +11,9 @@
 publish/
 dist/
 out/
+nupkgs/
+*.nupkg
+*.snupkg
 
 ## --- Test Results and Code Coverage ---
 [Tt]est[Rr]esults/
@@ -21,7 +24,7 @@ out/
 coverage/
 
 ## --- Project Generated Test & Benchmark Artifacts ---
-# File HTML tổng hợp ảnh 76 ngân hàng sinh ra trong quá trình chạy test (kích thước ~3.5MB)
+# File HTML tổng hợp ảnh 76 ngân hàng sinh ra trong quá trình chạy test
 tests/all_banks_gallery.html
 wwwroot/all_banks_gallery.html
 all_banks_gallery.html
@@ -86,3 +89,4 @@ appsettings.Production.json.local
 *.crash
 *.vsp
 *.vspx
+tests/

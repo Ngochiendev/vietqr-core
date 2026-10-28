@@ -1,0 +1,11 @@
+<Project>
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Deterministic>true</Deterministic>
+    <Company>Ngochiendev</Company>
+    <Product>VietQR Core</Product>
+    <Copyright>© 2026 Ngochiendev</Copyright>
+  </PropertyGroup>
+</Project>
