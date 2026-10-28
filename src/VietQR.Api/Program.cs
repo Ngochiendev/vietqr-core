@@ -1,5 +1,5 @@
 using VietQR.Api.Extensions;
-using VietQR.Core.Extensions;
+using VietQR.Core;
 
 var builder = WebApplication.CreateBuilder(args);
 

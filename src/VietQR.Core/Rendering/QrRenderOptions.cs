@@ -1,4 +1,4 @@
-namespace VietQR.Core.Rendering;
+namespace VietQR.Core;
 
 public class QrRenderOptions
 {

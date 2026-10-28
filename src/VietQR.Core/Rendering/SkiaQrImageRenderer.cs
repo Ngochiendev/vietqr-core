@@ -1,7 +1,6 @@
 using Microsoft.Extensions.Logging;
-using VietQR.Core.Abstractions;
 
-namespace VietQR.Core.Rendering;
+namespace VietQR.Core;
 
 public sealed class SkiaQrImageRenderer : IQrImageRenderer
 {

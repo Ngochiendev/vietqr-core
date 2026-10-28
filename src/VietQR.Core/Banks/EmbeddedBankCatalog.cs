@@ -1,8 +1,6 @@
-using System.Reflection;
 using System.Text.Json;
-using VietQR.Core.Abstractions;
 
-namespace VietQR.Core.Banks;
+namespace VietQR.Core;
 
 /// <summary>
 /// Danh mục ngân hàng được nhúng trực tiếp trong assembly VietQR.Core (chạy 100% offline, zero config).

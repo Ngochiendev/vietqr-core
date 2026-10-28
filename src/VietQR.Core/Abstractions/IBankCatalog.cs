@@ -1,6 +1,4 @@
-using VietQR.Core.Banks;
-
-namespace VietQR.Core.Abstractions;
+namespace VietQR.Core;
 
 /// <summary>Tra cứu ngân hàng theo BIN/code. Không lộ nguồn dữ liệu.</summary>
 public interface IBankCatalog

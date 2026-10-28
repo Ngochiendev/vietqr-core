@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace VietQR.Core.Emv;
+namespace VietQR.Core;
 
 /// <summary>Builder TLV thuần — không allocation thừa, test offline.</summary>
 public sealed class TlvBuilder

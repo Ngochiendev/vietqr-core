@@ -1,6 +1,4 @@
-using VietQR.Core.Rendering;
-
-namespace VietQR.Core.Abstractions;
+namespace VietQR.Core;
 
 /// <summary>Render ảnh PNG. Implementation nằm ở Rendering.</summary>
 public interface IQrImageRenderer

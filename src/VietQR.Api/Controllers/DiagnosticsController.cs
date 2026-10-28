@@ -1,9 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using VietQR.Api.Models;
-using VietQR.Core.Emv;
-using VietQR.Core.Models;
-using VietQR.Core.Rendering;
+using VietQR.Core;
 
 namespace VietQR.Api.Controllers;
 

@@ -2,11 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using VietQR.Api.Models;
-using VietQR.Core.Abstractions;
-using VietQR.Core.Banks;
-using VietQR.Core.Emv;
-using VietQR.Core.Models;
-using VietQR.Core.Rendering;
+using VietQR.Core;
 
 namespace VietQR.Api.Controllers;
 

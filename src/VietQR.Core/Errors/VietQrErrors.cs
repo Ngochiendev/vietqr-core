@@ -1,4 +1,4 @@
-namespace VietQR.Core.Errors;
+namespace VietQR.Core;
 
 public static class VietQrErrors
 {

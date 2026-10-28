@@ -1,7 +1,7 @@
 using System.Globalization;
 using System.Text;
 
-namespace VietQR.Core.Internal;
+namespace VietQR.Core;
 
 /// <summary>
 /// Tiện ích nội bộ chuẩn hóa tiếng Việt không dấu chuẩn ngân hàng.

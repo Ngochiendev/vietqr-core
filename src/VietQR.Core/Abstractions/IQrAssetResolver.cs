@@ -1,4 +1,4 @@
-namespace VietQR.Core.Abstractions;
+namespace VietQR.Core;
 
 /// <summary>Giải đường dẫn asset — thay cho việc truyền object environment vào constructor.</summary>
 public interface IQrAssetResolver

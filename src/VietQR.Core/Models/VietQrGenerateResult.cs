@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace VietQR.Core.Models;
+namespace VietQR.Core;
 
 /// <summary>
 /// Dữ liệu sinh mã VietQR thành công.

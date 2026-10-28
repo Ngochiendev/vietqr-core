@@ -1,6 +1,4 @@
-using VietQR.Core.Emv;
-
-namespace VietQR.Core.Abstractions;
+namespace VietQR.Core;
 
 /// <summary>Dịch vụ sinh chuỗi mã thanh toán EMVCo/NAPAS247 chạy offline 100%, không phụ thuộc I/O.</summary>
 public interface IQrGenerator

@@ -1,6 +1,4 @@
-using VietQR.Core.Banks;
-
-namespace VietQR.Core.Emv;
+namespace VietQR.Core;
 
 /// <summary>
 /// Tiện ích đóng gói chuỗi payload EMVCo VietQR chuẩn NAPAS247.

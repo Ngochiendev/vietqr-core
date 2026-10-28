@@ -1,4 +1,4 @@
-namespace VietQR.Core.Banks;
+namespace VietQR.Core;
 
 public sealed record BankBin
 {

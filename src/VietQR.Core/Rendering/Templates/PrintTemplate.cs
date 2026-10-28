@@ -1,4 +1,4 @@
-namespace VietQR.Core.Rendering.Templates;
+namespace VietQR.Core;
 
 public sealed class PrintTemplate : IQrTemplate
 {

@@ -1,4 +1,4 @@
-namespace VietQR.Core.Errors;
+namespace VietQR.Core;
 
 public sealed class Result<T>
 {

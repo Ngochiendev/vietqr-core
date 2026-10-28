@@ -2,10 +2,7 @@ using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-using VietQR.Core.Abstractions;
-using VietQR.Core.Internal;
-
-namespace VietQR.Core.Emv;
+namespace VietQR.Core;
 
 /// <summary>
 /// Loại dịch vụ chuyển tiền NAPAS247 (theo mục 5.2.3.2.3 tài liệu NAPAS)

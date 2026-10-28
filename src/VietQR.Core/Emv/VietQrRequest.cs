@@ -1,6 +1,4 @@
-using VietQR.Core.Banks;
-
-namespace VietQR.Core.Emv;
+namespace VietQR.Core;
 
 /// <summary>
 /// Yêu cầu sinh mã thanh toán VietQR chuẩn NAPAS247.

@@ -1,11 +1,9 @@
+using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 using QRCoder;
 using SkiaSharp;
-using System.Collections.Concurrent;
 
-using VietQR.Core.Abstractions;
-
-namespace VietQR.Core.Rendering;
+namespace VietQR.Core;
 
 /// <summary>
 /// Service tạo ảnh thẻ VietQR chuẩn nhận diện Napas247.
@@ -105,7 +103,7 @@ public class QrImageService
         // Tự động map tên ngân hàng và logo nếu chỉ truyền bankBin hoặc bankName
         if (!string.IsNullOrEmpty(bankBin))
         {
-            var bankInfo = VietQR.Core.Banks.EmbeddedBankCatalog.Instance.Find(bankBin);
+            var bankInfo = EmbeddedBankCatalog.Instance.Find(bankBin);
             if (bankInfo != null)
             {
                 bankName ??= bankInfo.ShortName;
@@ -115,7 +113,7 @@ public class QrImageService
         }
         else if (!string.IsNullOrEmpty(bankName))
         {
-            var bankInfo = VietQR.Core.Banks.EmbeddedBankCatalog.Instance.Find(bankName);
+            var bankInfo = EmbeddedBankCatalog.Instance.Find(bankName);
             if (bankInfo != null)
             {
                 bankBin ??= bankInfo.Bin;
@@ -539,8 +537,8 @@ public class QrImageService
         }
 
         // 2. Tra cứu mã BIN qua Catalog bộ nhớ từ tên/mã ngân hàng
-        var bankInfo = VietQR.Core.Banks.EmbeddedBankCatalog.Instance.Find(cleanBin)
-                    ?? VietQR.Core.Banks.EmbeddedBankCatalog.Instance.Find(cleanName);
+        var bankInfo = EmbeddedBankCatalog.Instance.Find(cleanBin)
+                    ?? EmbeddedBankCatalog.Instance.Find(cleanName);
         if (bankInfo != null && !string.IsNullOrEmpty(bankInfo.Bin))
         {
             var embBytes = GetEmbeddedResourceBytes($"VietQR.Core.Resources.logos.{bankInfo.Bin}.png");

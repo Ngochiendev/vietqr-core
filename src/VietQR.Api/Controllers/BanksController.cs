@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using VietQR.Core.Abstractions;
-using VietQR.Core.Banks;
+using VietQR.Core;
 
 namespace VietQR.Api.Controllers;
 

@@ -1,4 +1,4 @@
-namespace VietQR.Core.Errors;
+namespace VietQR.Core;
 
 public readonly record struct Error(string Code, string Message)
 {

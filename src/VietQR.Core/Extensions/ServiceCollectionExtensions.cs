@@ -1,12 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using VietQR.Core.Abstractions;
-using VietQR.Core.Emv;
-using VietQR.Core.Internal;
-using VietQR.Core.Rendering;
-using VietQR.Core.Rendering.Templates;
 
-namespace VietQR.Core.Extensions;
+namespace VietQR.Core;
 
 public static class ServiceCollectionExtensions
 {
@@ -24,7 +19,7 @@ public static class ServiceCollectionExtensions
         }
 
         services.TryAddSingleton<IQrGenerator, VietQr>();
-        services.TryAddSingleton<IBankCatalog>(VietQR.Core.Banks.EmbeddedBankCatalog.Instance);
+        services.TryAddSingleton<IBankCatalog>(EmbeddedBankCatalog.Instance);
         services.TryAddSingleton<QrImageService>();
         services.TryAddSingleton<IQrImageRenderer, SkiaQrImageRenderer>();
 
