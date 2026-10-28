@@ -1,0 +1,37 @@
+HƯỚNG DẪN CHẠY TEST & BENCHMARK (vietqr-core)
+
+Lưu ý: Mở terminal tại thư mục gốc vietqr-core để chạy các lệnh dưới đây.
+
+1. Chạy nhanh (kiểm tra logic, bỏ qua benchmark nặng)
+dotnet test tests/vietqr-core.Tests --filter "FullyQualifiedName!~Benchmark"
+
+2. Chạy toàn bộ test
+dotnet test tests/vietqr-core.Tests
+
+3. Test hiệu năng thuật toán CRC16 (Bit-by-Bit vs Table-Driven)
+- Đo tốc độ và cấp phát RAM (10k, 100k, 1.000.000 mã):
+dotnet test tests/vietqr-core.Tests --filter "Name=Benchmark_Crc_Performance_With_Max_String" --logger "console;verbosity=detailed"
+
+- Đối soát tính đúng đắn (kết quả 2 cách code phải giống nhau 100%):
+dotnet test tests/vietqr-core.Tests --filter "Name=Verify_Both_Methods_Produce_Identical_Result_On_Max_String"
+
+4. Test hiệu năng tạo ảnh QR (SkiaSharp)
+- Đo thời gian render mẫu in (print):
+dotnet test tests/vietqr-core.Tests --filter "Name=Benchmark_Print_Template_Execution_Time" --logger "console;verbosity=detailed"
+
+- So sánh 3 mẫu (qr_only, compact, print):
+dotnet test tests/vietqr-core.Tests --filter "Name=Benchmark_Compare_All_Three_Templates" --logger "console;verbosity=detailed"
+
+- Mô phỏng 1.000 trường học xuất phiếu thu học phí (1.000.000 học sinh):
+dotnet test tests/vietqr-core.Tests --filter "Name=Benchmark_School_Scenario_And_Long_Params" --logger "console;verbosity=detailed"
+
+5. Xuất mẫu thẻ 76 ngân hàng để kiểm tra giao diện
+dotnet test tests/vietqr-core.Tests --filter "Name=GenerateAll76BanksPrintCards"
+open tests/all_banks_gallery.html
+
+---
+Mô tả các file test trong thư mục tests/vietqr-core.Tests/:
+- CrcBenchmarkTests.cs: Benchmark thuật toán CRC16 (10k, 100k, 1M lần, chuỗi max).
+- TemplateBenchmarkTests.cs: Benchmark render ảnh SkiaSharp, đo độ trễ, throughput và kịch bản chịu tải.
+- QrOnlyGenerationTests.cs: Unit test 3 template và xuất ảnh thẻ 76 ngân hàng.
+- NapasVietQrStandardTests.cs: Kiểm tra định dạng chuẩn EMVCo/NAPAS247.
