@@ -1,0 +1,53 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net6.0;net8.0</TargetFrameworks>
+    <RootNamespace>VietQR.Core</RootNamespace>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+
+    <!-- NuGet Package Metadata -->
+    <IsPackable>true</IsPackable>
+    <PackageId>VietQR.Core</PackageId>
+    <Version>1.0.1</Version>
+    <Authors>Hien Dev</Authors>
+    <Company>Ngochiendev</Company>
+    <Description>Thư viện .NET hỗ trợ tạo chuỗi và render ảnh mã QR thanh toán theo chuẩn VietQR (NAPAS247).</Description>
+    <PackageTags>vietqr;napas247;qrcode;emvco;payment;vietnam;csharp;dotnet</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/Ngochiendev/vietqr-core</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageProjectUrl>https://github.com/Ngochiendev/vietqr-core</PackageProjectUrl>
+    <PackageIcon>vietqr_icon.png</PackageIcon>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="QRCoder" Version="1.8.1" />
+    <PackageReference Include="SkiaSharp" Version="4.153.1" />
+    <PackageReference Include="SkiaSharp.NativeAssets.macOS" Version="4.153.1" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Win32" Version="4.153.1" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="4.153.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="vietqr_core.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+    <None Include="Resources\vietqr_icon.png" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\vietqr.png" LogicalName="VietQR.Core.Resources.vietqr.png" />
+    <EmbeddedResource Include="Resources\vietqr_icon.png" LogicalName="VietQR.Core.Resources.vietqr_icon.png" />
+    <EmbeddedResource Include="Resources\napas247.png" LogicalName="VietQR.Core.Resources.napas247.png" />
+    <EmbeddedResource Include="Resources\banks.json" LogicalName="VietQR.Core.Resources.banks.json" />
+    <EmbeddedResource Include="Resources\logos\*.png" LogicalName="VietQR.Core.Resources.logos.%(Filename)%(Extension)" />
+  </ItemGroup>
+
+</Project>
