@@ -1,0 +1,10 @@
+**/.git
+**/.vs
+**/.vscode
+**/bin
+**/obj
+**/nupkgs
+**/.DS_Store
+src/VietQR.Api/wwwroot/data/logos/*.png
+tests/
+docs/
