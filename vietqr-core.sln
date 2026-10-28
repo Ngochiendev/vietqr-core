@@ -9,10 +9,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VietQR.Core", "src\VietQR.C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VietQR.Api", "src\VietQR.Api\VietQR.Api.csproj", "{739F4565-58CA-4E11-A988-47FAADCFEE29}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{14C2D186-A19D-4AAA-A177-699D30743F23}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "vietqr_core.Tests", "tests\vietqr-core.Tests\vietqr_core.Tests.csproj", "{E87ED91C-5D3F-45AE-A058-E5238734145A}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -30,14 +26,9 @@ Global
 		{739F4565-58CA-4E11-A988-47FAADCFEE29}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{739F4565-58CA-4E11-A988-47FAADCFEE29}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{739F4565-58CA-4E11-A988-47FAADCFEE29}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E87ED91C-5D3F-45AE-A058-E5238734145A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E87ED91C-5D3F-45AE-A058-E5238734145A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E87ED91C-5D3F-45AE-A058-E5238734145A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E87ED91C-5D3F-45AE-A058-E5238734145A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{6AB2CE7E-A525-4F54-A785-7DE04F8F9FEC} = {43724202-ADFF-4E4A-86EA-9A0E70F805D8}
 		{739F4565-58CA-4E11-A988-47FAADCFEE29} = {43724202-ADFF-4E4A-86EA-9A0E70F805D8}
-		{E87ED91C-5D3F-45AE-A058-E5238734145A} = {14C2D186-A19D-4AAA-A177-699D30743F23}
 	EndGlobalSection
 EndGlobal
