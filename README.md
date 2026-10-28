@@ -29,6 +29,7 @@
 ---
 
 ## 📑 Mục Lục
+
 1. [Giới Thiệu Tổng Quan](#-giới-thiệu-tổng-quan)
 2. [Tính Năng Nổi Bật](#-tính-năng-nổi-bật)
 3. [Công Nghệ & Thư Viện Sử Dụng](#-công-nghệ--thư-viện-sử-dụng)
@@ -47,9 +48,10 @@
 
 ## 🌟 Giới Thiệu Tổng Quan
 
-`vietqr-core` là giải pháp microservice độc lập, chuyên sâu cho bài toán tạo mã thanh toán QR theo chuẩn quốc gia **NAPAS247 / VietQR (EMVCo)**. 
+`vietqr-core` là giải pháp microservice độc lập, chuyên sâu cho bài toán tạo mã thanh toán QR theo chuẩn quốc gia **NAPAS247 / VietQR (EMVCo)**.
 
 Dự án loại bỏ hoàn toàn sự phụ thuộc thời gian thực vào các bên trung gian thứ ba:
+
 - **Tốc độ cực nhanh:** Sinh chuỗi EMVCo chỉ mất **~0.0001 ms / mã** với thuật toán CRC16-CCITT Table-Driven không cấp phát bộ nhớ Heap rác.
 - **Render đồ họa sắc nét:** Tích hợp bộ giải thuật SkiaSharp 4.x với phép nội suy `Mitchell` và cơ chế `GetContentBounds` tự động căn chỉnh và khử viền thừa logo ngân hàng.
 - **Sẵn sàng cho tải lớn:** Đáp ứng hàng triệu yêu cầu xuất phiếu thu học phí, hoá đơn điện tử, đơn hàng thương mại điện tử trong thời gian ngắn mà không gây nghẽn Garbage Collector (GC).
@@ -109,7 +111,10 @@ vietqr-core/
 │   │   ├── napas247.png                # Logo NAPAS247 footer
 │   │   └── logos/                      # Thư mục lưu trữ logo 76 ngân hàng theo mã BIN
 │   └── all_banks_gallery.html          # File HTML xem trước 76 ngân hàng (được sinh khi chạy test)
-├── docs/                               # Tài liệu tiêu chuẩn VietQR, báo cáo hiệu năng & test case
+├── docs/                               # Thư mục tài liệu kỹ thuật & báo cáo hiệu năng
+│   ├── QR_Format_T&C_v1.0_VN_092021.pdf# Quy chuẩn định dạng VietQR & Điều khoản T&C từ NAPAS
+│   ├── performance.pdf                 # Báo cáo tổng hợp đối soát hiệu năng & benchmark
+│   └── huong-dan-chay-test.txt         # Câu lệnh CLI hướng dẫn chạy test & xuất gallery
 ├── tests/
 │   └── vietqr-core.Tests/              # Bộ kiểm thử xUnit chuẩn NAPAS & Benchmarks
 ├── Program.cs                          # Entry point cấu hình DI, Swagger, CORS, Hosted Service
@@ -123,11 +128,11 @@ vietqr-core/
 
 ## 🖼 3 Mẫu Template Thẻ QR
 
-| Template | Kích thước | Mô tả | Ứng dụng phù hợp |
-| :--- | :---: | :--- | :--- |
-| `compact` *(Mặc định)* | **600 × 585 px** | Thẻ thanh toán hoàn chỉnh: Header VietQR, Khung thẻ bo góc, Mã QR có tâm VietQR, Footer thương hiệu NAPAS247 và Logo ngân hàng thụ hưởng. | Quét mã tại quầy thu ngân, hiển thị trên website, trang checkout thanh toán. |
-| `qr_only` | **500 × 500 px** | Ảnh mã QR vuông vức tinh gọn, chỉ gồm mã QR độ phân giải cao kèm logo VietQR ở trung tâm. | Nhúng vào Modal Popup, màn hình ứng dụng di động (Mobile App), hệ thống POS. |
-| `print` | **600 × 745 px** | Mẫu in ấn chuyên dụng mở rộng: Header VietQR, Mã QR lớn, Khung thông tin thanh toán (Số tiền định dạng VNĐ, Nội dung CK, Tên chủ TK, Số TK in đậm, Tên ngân hàng). Có thuật toán tự giảm cỡ chữ nếu nội dung dài. | In hoá đơn, phiếu thu học phí, biên lai thanh toán giấy A4/A5, thông báo nộp tiền. |
+| Template               |    Kích thước    | Mô tả                                                                                                                                                                                                             | Ứng dụng phù hợp                                                                   |
+| :--------------------- | :--------------: | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :--------------------------------------------------------------------------------- |
+| `compact` _(Mặc định)_ | **600 × 585 px** | Thẻ thanh toán hoàn chỉnh: Header VietQR, Khung thẻ bo góc, Mã QR có tâm VietQR, Footer thương hiệu NAPAS247 và Logo ngân hàng thụ hưởng.                                                                         | Quét mã tại quầy thu ngân, hiển thị trên website, trang checkout thanh toán.       |
+| `qr_only`              | **500 × 500 px** | Ảnh mã QR vuông vức tinh gọn, chỉ gồm mã QR độ phân giải cao kèm logo VietQR ở trung tâm.                                                                                                                         | Nhúng vào Modal Popup, màn hình ứng dụng di động (Mobile App), hệ thống POS.       |
+| `print`                | **600 × 745 px** | Mẫu in ấn chuyên dụng mở rộng: Header VietQR, Mã QR lớn, Khung thông tin thanh toán (Số tiền định dạng VNĐ, Nội dung CK, Tên chủ TK, Số TK in đậm, Tên ngân hàng). Có thuật toán tự giảm cỡ chữ nếu nội dung dài. | In hoá đơn, phiếu thu học phí, biên lai thanh toán giấy A4/A5, thông báo nộp tiền. |
 
 ---
 
@@ -136,26 +141,30 @@ vietqr-core/
 Prefix URL mặc định: `http://localhost:5187/api/v1/vietqr-core`
 
 ### 1. Tạo Mã Thanh Toán VietQR
+
 - **Endpoint:** `GET /api/v1/vietqr-core/generate`
 - **Mô tả:** Sinh chuỗi chuẩn EMVCo và render ảnh thẻ thanh toán (Base64 PNG).
 
 #### Các tham số Query Parameters:
-| Tham số | Bắt buộc | Kiểu | Mô tả | Ví dụ |
-| :--- | :---: | :---: | :--- | :--- |
-| `bankBin` | **Có** | `string` | Mã BIN ngân hàng thụ hưởng (đúng 6 chữ số). | `970422` (MBBank), `970436` (Vietcombank) |
-| `accountNo` | **Có** | `string` | Số tài khoản hoặc số thẻ người thụ hưởng (tối đa 19 ký tự). | `056789799999` |
-| `amount` | **Có** | `string` | Số tiền thanh toán (VNĐ), phải là số nguyên dương > 0. | `50000` |
-| `description` | **Có** | `string` | Nội dung chuyển khoản (hệ thống tự chuẩn hoá, khử dấu tiếng Việt). | `thanh toan hoc phi` |
-| `accountName`| Không | `string` | Tên chủ tài khoản người thụ hưởng (dùng hiển thị trên mẫu in ấn `print`). | `NGUYEN VAN A` |
-| `template` | Không | `string` | Mẫu giao diện xuất ra: `compact` (mặc định), `qr_only`, hoặc `print`. | `compact` |
+
+| Tham số       | Bắt buộc |   Kiểu   | Mô tả                                                                     | Ví dụ                                     |
+| :------------ | :------: | :------: | :------------------------------------------------------------------------ | :---------------------------------------- |
+| `bankBin`     |  **Có**  | `string` | Mã BIN ngân hàng thụ hưởng (đúng 6 chữ số).                               | `970422` (MBBank), `970436` (Vietcombank) |
+| `accountNo`   |  **Có**  | `string` | Số tài khoản hoặc số thẻ người thụ hưởng (tối đa 19 ký tự).               | `056789799999`                            |
+| `amount`      |  **Có**  | `string` | Số tiền thanh toán (VNĐ), phải là số nguyên dương > 0.                    | `50000`                                   |
+| `description` |  **Có**  | `string` | Nội dung chuyển khoản (hệ thống tự chuẩn hoá, khử dấu tiếng Việt).        | `thanh toan hoc phi`                      |
+| `accountName` |  Không   | `string` | Tên chủ tài khoản người thụ hưởng (dùng hiển thị trên mẫu in ấn `print`). | `NGUYEN VAN A`                            |
+| `template`    |  Không   | `string` | Mẫu giao diện xuất ra: `compact` (mặc định), `qr_only`, hoặc `print`.     | `compact`                                 |
 
 #### Ví dụ Request:
+
 ```http
 GET /api/v1/vietqr-core/generate?bankBin=970422&accountNo=056789799999&amount=50000&description=thanh toan hoc phi&template=compact
 Accept: application/json
 ```
 
 #### Phản hồi Thành Công (HTTP 200):
+
 ```json
 {
   "code": "00",
@@ -177,36 +186,42 @@ Accept: application/json
 ---
 
 ### 2. Lấy Danh Sách Ngân Hàng
+
 - **Endpoint:** `GET /api/v1/vietqr-core/banks`
 - **Mô tả:** Lấy toàn bộ danh mục 76+ ngân hàng hỗ trợ chuẩn chuyển tiền nhanh NAPAS247 kèm mã BIN, tên viết tắt, tên đầy đủ và trạng thái logo.
 
 ---
 
 ### 3. Kiểm Tra Trạng Thái Đồng Bộ Ngầm
+
 - **Endpoint:** `GET /api/v1/vietqr-core/sync-status`
 - **Mô tả:** Xem thông tin lần đồng bộ gần nhất: thời gian (giờ VN), số lượng ngân hàng, số lượng logo đã tải, thời gian dự kiến chạy lần tiếp theo (1h sáng).
 
 ---
 
 ### 4. Kích Hoạt Đồng Bộ Thủ Công Ngay Lập Tức
+
 - **Endpoint:** `POST /api/v1/vietqr-core/sync-now`
 - **Mô tả:** Buộc hệ thống gọi lên máy chủ VietQR IO để cập nhật lại file `banks.json` và tải bổ sung các logo mới về `wwwroot/data/logos/`.
 
 ---
 
 ### 5. Kiểm Tra Quyền Đọc - Ghi - Xoá Phân Vùng Đĩa (Self Diagnostic)
+
 - **Endpoint:** `GET /api/v1/vietqr-core/test-rw`
 - **Mô tả:** Tạo thử một file tạm, ghi dữ liệu, đọc lại kiểm tra nội dung và xoá file trong thư mục `wwwroot/data`. Dùng để kiểm tra quyền của tài khoản ứng dụng (ví dụ: `IIS_IUSRS`, `NETWORK SERVICE`, hoặc Docker user).
 
 ---
 
 ### 6. Xem Thư Viện Thẻ QR 76 Ngân Hàng
+
 - **Endpoint:** `GET /api/v1/vietqr-core/gallery`
 - **Mô tả:** Chuyển hướng trực tiếp đến trang `all_banks_gallery.html` hiển thị toàn bộ 76 mã QR đã render để kiểm thử quét bằng ứng dụng ngân hàng.
 
 ---
 
 ### 7. Chạy Thử Nghiệm Tải & Stress Test Quy Mô Lớn
+
 - **Endpoint:** `GET /api/v1/vietqr-core/benchmark-school-test`
 - **Tham số:**
   - `testRequests`: Số request chạy thử (mặc định: `2000`).
@@ -236,28 +251,34 @@ Accept: application/json
 ## 💻 Hướng Dẫn Cài Đặt & Khởi Chạy
 
 ### Yêu Cầu Môi Trường
+
 - [.NET 8.0 SDK](https://dotnet.microsoft.com/download/dotnet/8.0) trở lên.
 - Trình soạn thảo: Visual Studio 2022 / VS Code / Rider.
 
 ### Các Bước Thực Hiện
+
 1. **Clone dự án về máy:**
+
    ```bash
    git clone <repository_url>
    cd vietqr-core/vietqr-core
    ```
 
 2. **Restore gói thư viện NuGet:**
+
    ```bash
    dotnet restore
    ```
 
 3. **Chạy ứng dụng:**
+
    ```bash
    dotnet run
    ```
 
 4. **Truy cập tài liệu Swagger UI:**
    Mở trình duyệt tại địa chỉ:
+
    ```text
    http://localhost:5187/swagger
    ```
@@ -272,16 +293,21 @@ Accept: application/json
 Dự án tích hợp bộ kiểm thử xUnit bao quát toàn diện tại `tests/vietqr-core.Tests`:
 
 ### 1. Chạy Bộ Kiểm Thử Chuẩn NAPAS247 (500+ Test Cases)
+
 ```bash
 dotnet test tests/vietqr-core.Tests/vietqr_core.Tests.csproj --filter "FullyQualifiedName~NapasVietQrStandardTests"
 ```
-*Kết quả:* Kiểm tra tính hợp lệ của mã chuỗi EMVCo, độ dài các trường TLV, kiểm tra mã CRC16-CCITT theo đúng tiêu chuẩn thông tư Ngân hàng Nhà nước & NAPAS.
+
+_Kết quả:_ Kiểm tra tính hợp lệ của mã chuỗi EMVCo, độ dài các trường TLV, kiểm tra mã CRC16-CCITT theo đúng tiêu chuẩn thông tư Ngân hàng Nhà nước & NAPAS. Chi tiết các câu lệnh kiểm thử được tổng hợp tại [`docs/huong-dan-chay-test.txt`](docs/huong-dan-chay-test.txt).
 
 ### 2. Sinh File Thư Viện Ảnh 76 Ngân Hàng (Gallery)
+
 ```bash
 dotnet test tests/vietqr-core.Tests/vietqr_core.Tests.csproj --filter "GenerateAll76BanksPrintCards"
 ```
+
 Lệnh này sẽ tự động sinh file `tests/all_banks_gallery.html`. Bạn có thể mở trực tiếp để kiểm tra quét mã bằng camera điện thoại:
+
 ```bash
 # Trên macOS:
 open tests/all_banks_gallery.html
@@ -291,16 +317,20 @@ start tests/all_banks_gallery.html
 ```
 
 ### 3. Hiệu Năng Đo Đạc Thực Tế
+
 - **Sinh chuỗi EMVCo (VietQr.cs):** **~10.000.000+ mã / giây** (Zero Heap Allocation nhờ `ReadOnlySpan<char>` và bảng tra tĩnh 256 phần tử).
 - **Render ảnh `qr_only` (500x500):** **~3 - 5 ms / ảnh**.
 - **Render ảnh `compact` (600x585):** **~6 - 10 ms / ảnh**.
 - **Render ảnh `print` (600x745):** **~8 - 14 ms / ảnh**.
+
+> 📊 **Báo cáo đối soát chi tiết:** Toàn bộ bảng đo đạc so sánh phương pháp CRC Table-Driven vs Bit-by-Bit và kịch bản thực tế 1.000 trường học xuất 1.000.000 phiếu thu được lưu trữ tại [**docs/performance.pdf**](docs/performance.pdf).
 
 ---
 
 ## 🌐 Hướng Dẫn Triển Khai Production (IIS / Docker)
 
 ### 1. Triển Khai Trên Máy Chủ Windows IIS
+
 1. **Cài đặt hosting bundle:** Cài đặt **.NET 8 Hosting Bundle** trên Windows Server.
 2. **Publish ứng dụng:**
    ```bash
@@ -322,23 +352,24 @@ start tests/all_banks_gallery.html
 
 Mọi API đều trả về định dạng chuẩn có trường `code` và `desc`:
 
-| Mã Code | Trạng Thái HTTP | Ý Nghĩa | Nguyên Nhân & Cách Khắc Phục |
-| :---: | :---: | :--- | :--- |
-| `00` | 200 OK | **Thành công** | Yêu cầu được xử lý trọn vẹn, dữ liệu trả về trong thuộc tính `data`. |
-| `01` | 400 Bad Request | **Thiếu tham số bắt buộc** | Thiếu một trong các tham số: `bankBin`, `accountNo`, `amount`, `description`. |
-| `02` | 400 Bad Request | **Số tiền không hợp lệ** | Tham số `amount` không phải là số hoặc giá trị $\le 0$ VNĐ. |
-| `03` | 400 Bad Request | **Mã BIN sai định dạng** | `bankBin` phải đúng 6 chữ số (Ví dụ: `970422`, không truyền ký tự chữ như `MB`). |
-| `04` | 400 Bad Request | **Không tìm thấy ngân hàng** | Mã BIN hợp lệ 6 số nhưng không nằm trong danh mục ngân hàng thành viên NAPAS. |
-| `05` | 400 Bad Request | **Mẫu Template không hợp lệ** | Template truyền vào khác `compact`, `qr_only`, hoặc `print`. |
-| `99` | 500 Internal Error | **Lỗi ngoại lệ hệ thống** | Lỗi bất ngờ trong quá trình sinh mã đồ họa hoặc xử lý hệ thống. |
+| Mã Code |  Trạng Thái HTTP   | Ý Nghĩa                       | Nguyên Nhân & Cách Khắc Phục                                                     |
+| :-----: | :----------------: | :---------------------------- | :------------------------------------------------------------------------------- |
+|  `00`   |       200 OK       | **Thành công**                | Yêu cầu được xử lý trọn vẹn, dữ liệu trả về trong thuộc tính `data`.             |
+|  `01`   |  400 Bad Request   | **Thiếu tham số bắt buộc**    | Thiếu một trong các tham số: `bankBin`, `accountNo`, `amount`, `description`.    |
+|  `02`   |  400 Bad Request   | **Số tiền không hợp lệ**      | Tham số `amount` không phải là số hoặc giá trị $\le 0$ VNĐ.                      |
+|  `03`   |  400 Bad Request   | **Mã BIN sai định dạng**      | `bankBin` phải đúng 6 chữ số (Ví dụ: `970422`, không truyền ký tự chữ như `MB`). |
+|  `04`   |  400 Bad Request   | **Không tìm thấy ngân hàng**  | Mã BIN hợp lệ 6 số nhưng không nằm trong danh mục ngân hàng thành viên NAPAS.    |
+|  `05`   |  400 Bad Request   | **Mẫu Template không hợp lệ** | Template truyền vào khác `compact`, `qr_only`, hoặc `print`.                     |
+|  `99`   | 500 Internal Error | **Lỗi ngoại lệ hệ thống**     | Lỗi bất ngờ trong quá trình sinh mã đồ họa hoặc xử lý hệ thống.                  |
 
 ---
 
 ## 📄 Quyền Sở Hữu Trí Tuệ & Điều Khoản Sử Dụng (T&C)
 
-Căn cứ theo **Tài liệu Quy định về Định dạng mã VietQR trong Dịch vụ chuyển nhanh NAPAS247 (Phiên bản 1.0 - 09/2021)** do **Công ty Cổ phần Thanh toán Quốc gia Việt Nam (NAPAS)** ban hành:
+Căn cứ theo [**Tài liệu Quy định về Định dạng mã VietQR trong Dịch vụ chuyển nhanh NAPAS247 (Phiên bản 1.0 - 09/2021)**](docs/QR_Format_T%26C_v1.0_VN_092021.pdf) do **Công ty Cổ phần Thanh toán Quốc gia Việt Nam (NAPAS)** ban hành:
 
 ### 1. Quyền Sở Hữu Nhãn Hiệu & Tiêu Chuẩn Kỹ Thuật
+
 - **Nhãn hiệu VietQR & NAPAS247:** Nhãn hiệu thương mại, hình ảnh logo và nhận diện thương hiệu `VietQR`, `NAPAS`, `NAPAS247` thuộc toàn quyền sở hữu của **Công ty Cổ phần Thanh toán Quốc gia Việt Nam (NAPAS)**.
 - **Chuẩn kỹ thuật EMVCo & NHNN:** Cấu trúc định dạng mã thanh toán tuân thủ theo **Tiêu chuẩn cơ sở cho mã QR của Ngân hàng Nhà nước Việt Nam** và chuẩn thanh toán quốc tế **EMVCo Merchant-Presented Mode**.
 - **Cam kết tuân thủ T&C NAPAS:** Dự án tuân thủ đầy đủ các điều khoản tại Mục 8 trong tài liệu quy định của NAPAS:
@@ -346,6 +377,7 @@ Căn cứ theo **Tài liệu Quy định về Định dạng mã VietQR trong D�
   - Sử dụng chuẩn định dạng để xây dựng công cụ tạo mã VietQR phục vụ thanh toán hợp pháp qua mạng lưới Dịch vụ Chuyển nhanh NAPAS247.
 
 ### 2. Triển Khai Kỹ Thuật & Trách Nhiệm Dữ Liệu
+
 - **Mã nguồn giải pháp:** Dự án `vietqr-core` là bộ công cụ vi mô (microservice) độc lập, cung cấp giải pháp kỹ thuật tạo chuỗi EMVCo và render đồ hoạ thẻ thanh toán.
 - **Bảo mật & Quản lý thông tin:** Bên triển khai và vận hành chịu hoàn toàn trách nhiệm đối với việc quản lý, bảo mật thông tin thanh toán (Số tài khoản, Mã ngân hàng, Số tiền, Nội dung giao dịch) và tuân thủ các quy định hiện hành của Ngân hàng Nhà nước Việt Nam về an toàn thanh toán điện tử.
 
@@ -355,8 +387,8 @@ Căn cứ theo **Tài liệu Quy định về Định dạng mã VietQR trong D�
 
 Các tài liệu nghiên cứu, quy chuẩn kỹ thuật và báo cáo hiệu năng chính thức được lưu trữ trực tiếp trong thư mục [`docs/`](docs/):
 
-| STT | Tài Liệu | Định Dạng | Mô Tả Chi Tiết |
-| :---: | :--- | :---: | :--- |
-| 1 | [**Quy định về Định dạng mã VietQR (NAPAS v1.0)**](docs/QR_Format_T%26C_v1.0_VN_092021.pdf) | `PDF` | Văn bản quy chuẩn chính thức từ Công ty Cổ phần Thanh toán Quốc gia Việt Nam (NAPAS) ban hành tháng 09/2021, quy định cấu trúc TLV, ID dữ liệu và Điều khoản & Điều kiện (T&C). |
-| 2 | [**Báo Cáo Phân Tích & Đối Soát Hiệu Năng Tổng Thể**](docs/performance.pdf) | `PDF` | Bảng tổng hợp thực nghiệm so sánh thuật toán CRC16-CCITT (Table-Driven vs Bit-by-Bit), kiểm thử 3 mẫu giao diện và mô phỏng tải bài toán 1.000 trường học (1.000.000 học sinh). |
-| 3 | [**Hướng Dẫn Chạy Kiểm Thử & Benchmark CLI**](docs/huong-dan-chay-test.txt) | `TXT` | Tổng hợp câu lệnh Terminal/CLI để chạy test case NAPAS, benchmark thời gian thực và sinh thư viện 76 ngân hàng xem trước. |
+| STT | Tài Liệu                                                                                    | Định Dạng | Mô Tả Chi Tiết                                                                                                                                                                  |
+| :-: | :------------------------------------------------------------------------------------------ | :-------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+|  1  | [**Quy định về Định dạng mã VietQR (NAPAS v1.0)**](docs/QR_Format_T%26C_v1.0_VN_092021.pdf) |   `PDF`   | Văn bản quy chuẩn chính thức từ Công ty Cổ phần Thanh toán Quốc gia Việt Nam (NAPAS) ban hành tháng 09/2021, quy định cấu trúc TLV, ID dữ liệu và Điều khoản & Điều kiện (T&C). |
+|  2  | [**Báo Cáo Phân Tích & Đối Soát Hiệu Năng Tổng Thể**](docs/performance.pdf)                 |   `PDF`   | Bảng tổng hợp thực nghiệm so sánh thuật toán CRC16-CCITT (Table-Driven vs Bit-by-Bit), kiểm thử 3 mẫu giao diện và mô phỏng tải bài toán 1.000 trường học (1.000.000 học sinh). |
+|  3  | [**Hướng Dẫn Chạy Kiểm Thử & Benchmark CLI**](docs/huong-dan-chay-test.txt)                 |   `TXT`   | Tổng hợp câu lệnh Terminal/CLI để chạy test case NAPAS, benchmark thời gian thực và sinh thư viện 76 ngân hàng xem trước.                                                       |

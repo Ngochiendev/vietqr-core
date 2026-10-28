@@ -67,4 +67,4 @@ git commit -m "perf: tối ưu thuật toán CRC16-CCITT sử dụng ReadOnlySpa
 
 ## 4. Kiểm Thử & Đo Đạc (Testing)
 
-Mọi đóng góp liên quan đến thuật toán chuẩn hóa chuỗi EMVCo bắt buộc phải đối chiếu với tài liệu quy chuẩn kỹ thuật NAPAS v1.0 trong thư mục `docs/`. Tuyệt đối không đưa vào các thay đổi làm sai lệch cấu trúc trường TLV hoặc CRC checksum.
+Mọi đóng góp liên quan đến thuật toán chuẩn hóa chuỗi EMVCo bắt buộc phải đối chiếu với [tài liệu quy chuẩn kỹ thuật NAPAS v1.0 (PDF)](docs/QR_Format_T%26C_v1.0_VN_092021.pdf) trong thư mục [`docs/`](docs/). Tuyệt đối không đưa vào các thay đổi làm sai lệch cấu trúc trường TLV hoặc CRC checksum.

@@ -4,7 +4,7 @@
 - **Nhãn hiệu NAPAS & VietQR:** Các tên gọi, biểu trưng, logo và nhãn hiệu thương mại **VietQR**, **NAPAS**, **NAPAS247** thuộc toàn quyền sở hữu của **Công ty Cổ phần Thanh toán Quốc gia Việt Nam (NAPAS)**.
 - **Tiêu chuẩn kỹ thuật:** Bộ định dạng mã thanh toán áp dụng trong dự án này được xây dựng dựa trên:
   1. *Tiêu chuẩn cơ sở cho mã phản hồi nhanh (QR Code) trong lĩnh vực thanh toán tại Việt Nam* do **Ngân hàng Nhà nước Việt Nam** ban hành.
-  2. *Quy định về Định dạng mã VietQR trong Dịch vụ chuyển nhanh NAPAS247 (Phiên bản 1.0 - 09/2021)* do **NAPAS** công bố.
+  2. [*Quy định về Định dạng mã VietQR trong Dịch vụ chuyển nhanh NAPAS247 (Phiên bản 1.0 - 09/2021)*](docs/QR_Format_T%26C_v1.0_VN_092021.pdf) do **NAPAS** công bố.
   3. *EMVCo QR Code Specification for Payment Systems (Merchant-Presented Mode)*.
 - **Tuân thủ T&C của NAPAS:** Dự án cam kết và tôn trọng đầy đủ các Điều khoản & Điều kiện sử dụng (Terms & Conditions) của NAPAS:
   - Dự án không sở hữu và không tuyên bố hoặc ngầm ý xác lập quyền sở hữu đối với tài liệu đặc tả, nhãn hiệu thương mại, logo hay bất kỳ tài sản sở hữu trí tuệ nào thuộc về NAPAS, NHNN hay EMVCo.
