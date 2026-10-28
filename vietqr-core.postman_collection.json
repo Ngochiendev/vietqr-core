@@ -440,7 +440,7 @@
           "response": []
         },
         {
-          "name": "2.2 Đọc trực tiếp file tĩnh từ wwwroot",
+          "name": "2.2 Tra cứu ngân hàng theo BIN hoặc mã viết tắt",
           "request": {
             "method": "GET",
             "header": [
@@ -450,78 +450,21 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/data/banks.json",
+              "raw": "{{baseUrl}}/api/v1/vietqr-core/banks/970422",
               "host": ["{{baseUrl}}"],
-              "path": ["data", "banks.json"]
+              "path": ["api", "v1", "vietqr-core", "banks", "970422"]
             },
-            "description": "Truy cập trực tiếp file tĩnh banks.json thông qua Static Files Middleware của ASP.NET Core."
+            "description": "Tra cứu ngân hàng theo mã BIN (vd: 970422) hoặc mã viết tắt (vd: MB) trực tiếp từ Embedded Bank Catalog."
           },
           "response": []
         }
       ]
     },
     {
-      "name": "3. Vận hành & Chẩn đoán Hạ tầng (Operations & Diagnostics)",
+      "name": "3. Vận hành & Chẩn đoán Hiệu năng (Performance & Diagnostics)",
       "item": [
         {
-          "name": "3.1 Chẩn đoán quyền Đọc - Ghi - Xóa trên IIS Server",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/vietqr-core/test-rw",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "vietqr-core", "test-rw"]
-            },
-            "description": "Kiểm tra thực tế 4 thao tác phân quyền trực tiếp trên ổ đĩa thư mục wwwroot/data của IIS Windows Server."
-          },
-          "response": []
-        },
-        {
-          "name": "3.2 Báo cáo trạng thái tiến trình đồng bộ ngầm & IIS",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/vietqr-core/sync-status",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "vietqr-core", "sync-status"]
-            },
-            "description": "Lấy chi tiết trạng thái tiến trình chạy ngầm: thời gian đồng bộ tiếp theo lúc 01:00 AM, dung lượng logos, quyền ghi thực tế và hướng dẫn icacls nếu bị lỗi."
-          },
-          "response": []
-        },
-        {
-          "name": "3.3 Kích hoạt đồng bộ ngân hàng & tải logo ngay lập tức",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/vietqr-core/sync-now",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "vietqr-core", "sync-now"]
-            },
-            "description": "Chủ động kích hoạt đồng bộ toàn bộ danh mục ngân hàng và tải toàn bộ logo PNG từ CDN về máy chủ."
-          },
-          "response": []
-        },
-        {
-          "name": "3.4 Kiểm thử chất lượng toàn diện hệ thống (Self-Test)",
+          "name": "3.1 Kiểm thử chất lượng toàn diện hệ thống (Self-Test)",
           "request": {
             "method": "GET",
             "header": [
@@ -540,7 +483,7 @@
           "response": []
         },
         {
-          "name": "3.5 Kiểm thử tải 2.000 đến 10.000 mã QR học phí (Stress & Load Test)",
+          "name": "3.2 Kiểm thử tải 2.000 đến 10.000 mã QR học phí (Stress & Load Test)",
           "request": {
             "method": "GET",
             "header": [
