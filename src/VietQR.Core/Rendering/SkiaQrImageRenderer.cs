@@ -20,6 +20,15 @@ public sealed class SkiaQrImageRenderer : IQrImageRenderer
         QrRenderOptions options,
         CancellationToken ct = default)
     {
+        options.Format = QrImageFormat.Png;
+        return await RenderAsync(emvPayload, options, ct);
+    }
+
+    public async Task<byte[]> RenderAsync(
+        string emvPayload,
+        QrRenderOptions options,
+        CancellationToken ct = default)
+    {
         var templateName = string.IsNullOrWhiteSpace(options.Template) ? "compact" : options.Template;
 
         if (!_templates.TryGetValue(templateName, out var template))
@@ -29,5 +38,27 @@ public sealed class SkiaQrImageRenderer : IQrImageRenderer
 
         _logger?.LogDebug("Rendering QR with template {Template}", templateName);
         return await template.RenderAsync(emvPayload, options, ct);
+    }
+
+    public async Task RenderToStreamAsync(
+        string emvPayload,
+        Stream outputStream,
+        QrRenderOptions options,
+        CancellationToken ct = default)
+    {
+        if (outputStream == null)
+        {
+            throw new ArgumentNullException(nameof(outputStream));
+        }
+
+        var templateName = string.IsNullOrWhiteSpace(options.Template) ? "compact" : options.Template;
+
+        if (!_templates.TryGetValue(templateName, out var template))
+        {
+            throw new ArgumentException($"Template '{options.Template}' không hỗ trợ.", nameof(options));
+        }
+
+        _logger?.LogDebug("Rendering QR to stream with template {Template}", templateName);
+        await template.RenderToStreamAsync(emvPayload, outputStream, options, ct);
     }
 }

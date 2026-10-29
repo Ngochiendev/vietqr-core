@@ -53,6 +53,11 @@ Console.WriteLine(payload);
 
 Omit `amount` to emit a static QR (`Point of Initiation Method = 11`).
 Use `serviceType: VietQrServiceType.Card` for QRIBFTTC (transfer to card).
+Rendered card-payload sample: [Resources/examples/vietqr-card.png](Resources/examples/vietqr-card.png).
+
+<p align="center">
+  <img src="Resources/examples/vietqr-card.png" alt="QRIBFTTC card sample" width="260" />
+</p>
 
 The library automatically strips Vietnamese diacritics and rejects control
 characters, so `description` input is safe to pass as-is.
@@ -115,6 +120,16 @@ string dataUrl = $"data:image/png;base64,{Convert.ToBase64String(png)}";
 `RenderPngAsync` returns PNG `byte[]` — embed directly in HTML
 (`data:image/png;base64,...`), write to disk, or return from your own REST API.
 
+`AddVietQrCore()` accepts an optional `VietQrOptions` record:
+
+```csharp
+services.AddVietQrCore(options =>
+{
+    options.DefaultTemplate = "compact";  // template used when QrRenderOptions.Template is not set
+    options.DataPath = "/data/vietqr";    // optional data directory for Docker/K8s mounts
+});
+```
+
 ### Available templates
 
 Canvas sizes, straight from the rendering code (`QrImageService.cs`):
@@ -125,9 +140,96 @@ Canvas sizes, straight from the rendering code (`QrImageService.cs`):
 | `qr_only` | 500 × 500 (configurable via `QrRenderOptions.Size`)                | Minimal square QR with the VietQR logo in the center    |
 | `print`   | 600 × dynamic (590 px + 28 px per info line + 16 px bottom margin) | Receipt-style card with amount, transfer note, account  |
 
-| `qr_only`                                                                                         | `compact`                                                                                         | `print`                                                                                       |
-| ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| ![qr_only](https://raw.githubusercontent.com/Ngochiendev/vietqr-core/main/docs/image/qr_only.png) | ![compact](https://raw.githubusercontent.com/Ngochiendev/vietqr-core/main/docs/image/compact.png) | ![print](https://raw.githubusercontent.com/Ngochiendev/vietqr-core/main/docs/image/print.png) |
+| `qr_only`                                     | `compact`                                     | `print`                                  |
+| --------------------------------------------- | --------------------------------------------- | ---------------------------------------- |
+| ![qr_only](Resources/examples/vietqr-qronly.png) | ![compact](Resources/examples/vietqr-compact.png) | ![print](Resources/examples/vietqr-print.png) |
+
+### 4. Parse a payload and decode images
+
+Two entry points, both returning `Result<T>` instead of throwing:
+
+```csharp
+using VietQR.Core;
+
+// (a) Parse a payload string (CRC16 validated, strict TLV)
+Result<VietQrInfo> parsed = VietQrParser.Parse(payload);
+if (parsed.IsSuccess)
+{
+    VietQrInfo info = parsed.Value!;
+    // info.BankInfo, info.AccountNo, info.Amount, info.ServiceType,
+    // info.Description, info.BillNumber, info.ReferenceLabel, info.IsValidCrc
+}
+
+// (b) Decode from an uploaded image (PNG / WebP / JPEG / BMP)
+byte[] imageBytes = await File.ReadAllBytesAsync("customer_uploaded.png");
+Result<VietQrInfo> decoded = VietQrDecoder.Decode(imageBytes);
+```
+
+On failure `result.Error` carries a stable code from `VietQrErrors`
+(`qr.missing_param`, `qr.invalid_amount`, `qr.invalid_bin`, `qr.bank_not_found`,
+`qr.invalid_payload`, `qr.invalid_crc`, `qr.not_vietqr`,
+`qr.image_decode_failed`, ...).
+
+`VietQrParseOptions` tunes the parser defaults:
+
+| Property           | Default | Description                                                                 |
+| ------------------ | ------- | ---------------------------------------------------------------------------- |
+| `StrictCrc`        | `true`  | Reject payloads whose CRC tag does not match the content.                     |
+| `MaxPayloadLength` | `1024`  | Cap on payload length before parsing (untrusted input from camera/webhooks).  |
+| `BankCatalog`      | `null`  | Custom `IBankCatalog`; defaults to the embedded catalog.                      |
+
+`VietQrDecoder.Decode` also accepts `Stream?` and `SKBitmap?` overloads, plus
+`DecodeAsync(...)` — see the public surface of `VietQrDecoder`.
+
+### 5. Output formats and streams
+
+`QrRenderOptions.Format` selects the output image format — `Png` (default),
+`Webp` or `Svg`:
+
+```csharp
+// WebP — roughly 30-40% smaller than PNG at the same quality
+var webpOptions = new QrRenderOptions { Template = "compact", Format = QrImageFormat.Webp, Quality = 80 };
+byte[] webp = await renderer.RenderAsync(payload, webpOptions);   // honors options.Format
+await File.WriteAllBytesAsync("vietqr.webp", webp);
+
+// SVG — pure C# string, no native dependency
+string svgXml = VietQrSvgRenderer.Render(payload, size: 500);
+
+// Streams — write straight into a response/file stream, no byte[] buffer
+await renderer.RenderToStreamAsync(payload, httpContext.Response.Body,
+    new QrRenderOptions { Template = "compact", Format = QrImageFormat.Webp });
+```
+
+`QrImageService` mirrors the same surface when used directly
+(`RenderBytesAsync`, `RenderWebpBytesAsync`, `SaveWebpAsync`, `RenderSvgAsync`,
+`SaveAsync`).
+
+### 6. Custom center logo
+
+`QrRenderOptions` accepts a custom brand logo embedded in the center of the QR
+— as bytes or as a Base64 data URL:
+
+```csharp
+var branded = new QrRenderOptions
+{
+    Template = "qr_only",
+    Size = 500,
+    CustomCenterLogo = File.ReadAllBytes("my_brand_logo.png"),
+    // CustomCenterLogoBase64 = "data:image/png;base64,...",
+    CenterLogoRatio = 0.20f          // logo width vs QR width (safe range 0.10-0.28)
+};
+```
+
+The QR module matrix stays black-on-white (`#000000` / `#FFFFFF`), so branded
+cards remain scannable by banking apps. Rendered examples shipped in the
+package:
+[Resources/examples/vietqr-card.png](Resources/examples/vietqr-card.png)
+(QRIBFTTC card) and
+[Resources/examples/vietqr-custom-logo.png](Resources/examples/vietqr-custom-logo.png).
+
+<p align="center">
+  <img src="Resources/examples/vietqr-custom-logo.png" alt="Custom center logo sample" width="260" />
+</p>
 
 ### Utilities
 

@@ -17,4 +17,5 @@ public sealed record BankBin
     public override string ToString() => Value;
 
     public static implicit operator string(BankBin bin) => bin.Value;
+    public static implicit operator BankBin(string raw) => Create(raw);
 }

@@ -11,25 +11,220 @@ namespace VietQR.Core;
 public class QrImageService
 {
     private readonly IQrAssetResolver? _assetResolver;
+    private readonly IBankCatalog _bankCatalog;
     private readonly string? customRootPath;
     private readonly ILogger<QrImageService>? logger;
 
     public QrImageService(
         IQrAssetResolver? assetResolver = null,
         ILogger<QrImageService>? logger = null,
-        string? customRootPath = null)
+        string? customRootPath = null,
+        IBankCatalog? bankCatalog = null)
     {
         this._assetResolver = assetResolver;
         this.logger = logger;
         this.customRootPath = customRootPath;
+        this._bankCatalog = bankCatalog ?? EmbeddedBankCatalog.Instance;
     }
 
     public QrImageService(string customRootPath)
-        : this(null, null, customRootPath)
+        : this(null, null, customRootPath, null)
     {
     }
 
+    private const int MaxLogoCacheEntries = 128;
     private static readonly ConcurrentDictionary<string, byte[]> LogoCache = new(StringComparer.OrdinalIgnoreCase);
+
+    private static void CacheLogo(string key, byte[] bytes)
+    {
+        if (LogoCache.Count >= MaxLogoCacheEntries)
+        {
+            LogoCache.Clear();
+        }
+        LogoCache[key] = bytes;
+    }
+
+    private static (SKEncodedImageFormat? Format, int Quality, string MimeType) ResolveFormat(QrRenderOptions? options)
+    {
+        var fmt = options?.Format ?? QrImageFormat.Png;
+        int quality = options?.Quality ?? 100;
+        quality = Math.Clamp(quality, 1, 100);
+
+        return fmt switch
+        {
+            QrImageFormat.Webp => (SKEncodedImageFormat.Webp, quality, "image/webp"),
+            QrImageFormat.Svg => (null, quality, "image/svg+xml"),
+            _ => (SKEncodedImageFormat.Png, quality, "image/png")
+        };
+    }
+
+    /// <summary>
+    /// Render ảnh thẻ VietQR theo cấu hình chi tiết <see cref="QrRenderOptions"/> (Png, WebP, SVG, logo tâm).
+    /// </summary>
+    public async Task<byte[]> RenderBytesAsync(
+        string emvQrContent,
+        QrRenderOptions? options = null,
+        CancellationToken ct = default)
+    {
+        var opt = options ?? new QrRenderOptions();
+        using var ms = new MemoryStream();
+        await RenderToStreamAsync(emvQrContent, ms, opt, ct).ConfigureAwait(false);
+        return ms.ToArray();
+    }
+
+    /// <summary>
+    /// Render ảnh thẻ VietQR theo định dạng WebP (giảm 30-40% dung lượng so với PNG).
+    /// </summary>
+    public Task<byte[]> RenderWebpBytesAsync(
+        string emvQrContent,
+        QrRenderOptions? options = null,
+        CancellationToken ct = default)
+    {
+        var opt = options ?? new QrRenderOptions();
+        opt.Format = QrImageFormat.Webp;
+        return RenderBytesAsync(emvQrContent, opt, ct);
+    }
+
+    /// <summary>
+    /// Lưu trực tiếp ảnh thẻ VietQR định dạng WebP ra file trên ổ đĩa.
+    /// </summary>
+    public async Task SaveWebpAsync(
+        string filePath,
+        string emvQrContent,
+        QrRenderOptions? options = null,
+        CancellationToken ct = default)
+    {
+        var opt = options ?? new QrRenderOptions();
+        opt.Format = QrImageFormat.Webp;
+        var dir = Path.GetDirectoryName(filePath);
+        if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+        {
+            Directory.CreateDirectory(dir);
+        }
+        using var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, useAsync: true);
+        await RenderToStreamAsync(emvQrContent, fs, opt, ct).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Render ảnh thẻ VietQR trực tiếp ra luồng dữ liệu Stream mà không cấp phát mảng byte lên Large Object Heap (LOH).
+    /// Tối ưu hóa cực đại bộ nhớ cho các hệ thống chịu tải hàng triệu request/ngày.
+    /// Hỗ trợ cả 3 định dạng: PNG, WebP và Vector SVG.
+    /// </summary>
+    public async Task RenderToStreamAsync(
+        string emvQrContent,
+        Stream outputStream,
+        QrRenderOptions? options = null,
+        CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(emvQrContent))
+        {
+            throw new ArgumentException("Chuỗi nội dung mã QR (emvQrContent) không được để trống.", nameof(emvQrContent));
+        }
+
+        if (outputStream == null)
+        {
+            throw new ArgumentNullException(nameof(outputStream));
+        }
+
+        var opt = options ?? new QrRenderOptions();
+
+        if (opt.Format == QrImageFormat.Svg)
+        {
+            if (string.Equals(opt.Template, "qr_only", StringComparison.OrdinalIgnoreCase))
+            {
+                string? centerLogoBase64 = null;
+                if (opt.CustomCenterLogo != null && opt.CustomCenterLogo.Length > 0)
+                {
+                    centerLogoBase64 = Convert.ToBase64String(opt.CustomCenterLogo);
+                }
+                else
+                {
+                    using var defaultIcon = LoadCenterIconBitmap();
+                    if (defaultIcon != null)
+                    {
+                        using var iconData = defaultIcon.Encode(SKEncodedImageFormat.Png, 100);
+                        centerLogoBase64 = Convert.ToBase64String(iconData.ToArray());
+                    }
+                }
+
+                string svgXml = VietQrSvgRenderer.Render(
+                    emvQrContent,
+                    opt.Size > 0 ? opt.Size : 500,
+                    "#000000",
+                    "#FFFFFF",
+                    centerLogoBase64,
+                    opt.CenterLogoRatio);
+
+                var svgBytes = System.Text.Encoding.UTF8.GetBytes(svgXml);
+                outputStream.Write(svgBytes, 0, svgBytes.Length);
+                return;
+            }
+
+            var (w, h) = CalculateCardDimensions(opt);
+            using (var svgCanvas = SKSvgCanvas.Create(SKRect.Create(w, h), outputStream))
+            {
+                await RenderCardCanvasAsync(svgCanvas, w, h, emvQrContent, opt).ConfigureAwait(false);
+            }
+            return;
+        }
+
+        var (skFormat, quality, _) = ResolveFormat(opt);
+
+        if (string.Equals(opt.Template, "qr_only", StringComparison.OrdinalIgnoreCase))
+        {
+            using var surface = CreateQrOnlySurface(emvQrContent, opt);
+            using var image = surface.Snapshot();
+            using var data = image.Encode(skFormat!.Value, quality);
+            data.SaveTo(outputStream);
+            return;
+        }
+
+        var (cw, ch) = CalculateCardDimensions(opt);
+        using var cardSurface = SKSurface.Create(new SKImageInfo(cw, ch));
+        await RenderCardCanvasAsync(cardSurface.Canvas, cw, ch, emvQrContent, opt).ConfigureAwait(false);
+        using var cardImage = cardSurface.Snapshot();
+        using var cardData = cardImage.Encode(skFormat!.Value, quality);
+        cardData.SaveTo(outputStream);
+    }
+
+    /// <summary>
+    /// Render ảnh thẻ VietQR dạng chuỗi XML SVG (Vector) độ nét vô hạn.
+    /// </summary>
+    public async Task<string> RenderSvgAsync(
+        string emvQrContent,
+        QrRenderOptions? options = null,
+        CancellationToken ct = default)
+    {
+        var opt = options ?? new QrRenderOptions();
+        opt.Format = QrImageFormat.Svg;
+        using var ms = new MemoryStream();
+        await RenderToStreamAsync(emvQrContent, ms, opt, ct).ConfigureAwait(false);
+        return System.Text.Encoding.UTF8.GetString(ms.ToArray());
+    }
+
+    /// <summary>
+    /// Lưu trực tiếp ảnh thẻ VietQR ra file trên ổ đĩa theo định dạng tương ứng (PNG, WebP hoặc SVG).
+    /// </summary>
+    public async Task SaveAsync(
+        string filePath,
+        string emvQrContent,
+        QrRenderOptions? options = null,
+        CancellationToken ct = default)
+    {
+        var opt = options ?? new QrRenderOptions();
+        var ext = Path.GetExtension(filePath)?.ToLowerInvariant();
+        if (ext == ".svg") opt.Format = QrImageFormat.Svg;
+        else if (ext == ".webp") opt.Format = QrImageFormat.Webp;
+        else if (ext == ".png") opt.Format = QrImageFormat.Png;
+
+        var dir = Path.GetDirectoryName(filePath);
+        if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+        {
+            Directory.CreateDirectory(dir);
+        }
+        using var fs = new FileStream(filePath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, useAsync: true);
+        await RenderToStreamAsync(emvQrContent, fs, opt, ct).ConfigureAwait(false);
+    }
 
     /// <summary>
     /// Render ảnh thẻ VietQR chuẩn PNG và trả về mảng byte raw.
@@ -45,8 +240,9 @@ public class QrImageService
     /// <param name="amount">Số tiền VNĐ thanh toán.</param>
     /// <param name="description">Nội dung chuyển khoản.</param>
     /// <param name="bankFullName">Tên đầy đủ của ngân hàng.</param>
+    /// <param name="serviceType">Loại dịch vụ chuyển tiền: Account (tài khoản - mặc định) hoặc Card (thẻ).</param>
     /// <returns>Mảng byte ảnh PNG chất lượng cao.</returns>
-    public async Task<byte[]> RenderPngBytesAsync(
+    public Task<byte[]> RenderPngBytesAsync(
         string emvQrContent,
         string? bankName = null,
         string? bankBin = null,
@@ -57,27 +253,40 @@ public class QrImageService
         string? accountName = null,
         string? amount = null,
         string? description = null,
-        string? bankFullName = null)
+        string? bankFullName = null,
+        VietQrServiceType serviceType = VietQrServiceType.Account)
     {
-        if (qrOnly || string.Equals(template, "qr_only", StringComparison.OrdinalIgnoreCase))
+        long? parsedAmt = null;
+        if (!string.IsNullOrWhiteSpace(amount))
         {
-            return GenerateQrOnlyBytes(emvQrContent);
+            var cleanedAmt = amount.Replace(",", "").Replace(".", "").Trim();
+            if (long.TryParse(cleanedAmt, out var val)) parsedAmt = val;
         }
 
-        var base64Url = await GenerateVietQrBase64Async(
-            emvQrContent, bankName, bankBin, bankLogoUrl, template, qrOnly, accountNo, accountName, amount, description, bankFullName);
-        var base64 = base64Url.StartsWith("data:image/png;base64,") ? base64Url["data:image/png;base64,".Length..] : base64Url;
-        return Convert.FromBase64String(base64);
+        var opt = new QrRenderOptions
+        {
+            Template = qrOnly ? "qr_only" : (template ?? "compact"),
+            BankBin = bankBin,
+            BankName = bankName,
+            BankFullName = bankFullName,
+            BankLogoUrl = bankLogoUrl,
+            AccountNo = accountNo,
+            AccountName = accountName,
+            Amount = parsedAmt,
+            Description = description,
+            ServiceType = serviceType,
+            Format = QrImageFormat.Png
+        };
+
+        return RenderBytesAsync(emvQrContent, opt);
     }
 
     /// <summary>
-    /// Tạo ảnh thẻ VietQR chuẩn PNG và trả về chuỗi Data URL Base64.
-    /// Hỗ trợ 3 mẫu template:
-    /// - 'compact': Mẫu thẻ chuẩn 600x585 px (mặc định) có header VietQR, khung viền, mã QR và footer Napas247 + logo ngân hàng.
-    /// - 'qr_only': Mẫu vuông 500x500 px chỉ có mã QR và icon VietQR ở chính giữa.
-    /// - 'print': Mẫu in ấn mở rộng kèm thông tin số tiền, nội dung CK, tên chủ TK, số TK (in đậm) và tên ngân hàng.
+    /// Tạo ảnh thẻ VietQR và lưu trực tiếp thành file PNG trên ổ đĩa.
+    /// Tự động tạo thư mục nếu chưa tồn tại.
     /// </summary>
-    public async Task<string> GenerateVietQrBase64Async(
+    public async Task SavePngAsync(
+        string filePath,
         string emvQrContent,
         string? bankName = null,
         string? bankBin = null,
@@ -88,22 +297,142 @@ public class QrImageService
         string? accountName = null,
         string? amount = null,
         string? description = null,
-        string? bankFullName = null)
+        string? bankFullName = null,
+        VietQrServiceType serviceType = VietQrServiceType.Account,
+        CancellationToken ct = default)
+    {
+        var bytes = await RenderPngBytesAsync(
+            emvQrContent, bankName, bankBin, bankLogoUrl, template, qrOnly, accountNo, accountName, amount, description, bankFullName, serviceType);
+        await VietQrImageConverter.SaveToFileAsync(bytes, filePath, ct);
+    }
+
+    /// <summary>
+    /// Tạo ảnh thẻ VietQR theo tùy chọn <see cref="QrRenderOptions"/> và trả về chuỗi Data URL Base64 (hỗ trợ PNG, WebP và SVG).
+    /// </summary>
+    public async Task<string> GenerateVietQrBase64Async(
+        string emvQrContent,
+        QrRenderOptions? options = null,
+        CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(emvQrContent))
         {
             throw new ArgumentException("Chuỗi nội dung mã QR (emvQrContent) không được để trống.", nameof(emvQrContent));
         }
 
-        if (qrOnly || string.Equals(template, "qr_only", StringComparison.OrdinalIgnoreCase))
+        var opt = options ?? new QrRenderOptions();
+        var (_, _, mime) = ResolveFormat(opt);
+
+        using var ms = new MemoryStream();
+        await RenderToStreamAsync(emvQrContent, ms, opt, ct).ConfigureAwait(false);
+        return $"data:{mime};base64,{Convert.ToBase64String(ms.ToArray())}";
+    }
+
+    /// <summary>
+    /// Tạo ảnh thẻ VietQR và trả về chuỗi Data URL Base64.
+    /// Hỗ trợ 3 mẫu template:
+    /// - 'compact': Mẫu thẻ chuẩn 600x585 px (mặc định) có header VietQR, khung viền, mã QR và footer Napas247 + logo ngân hàng.
+    /// - 'qr_only': Mẫu vuông 500x500 px chỉ có mã QR và icon VietQR ở chính giữa.
+    /// - 'print': Mẫu in ấn mở rộng kèm thông tin số tiền, nội dung CK, tên chủ TK, số TK (in đậm) và tên ngân hàng.
+    /// </summary>
+    public Task<string> GenerateVietQrBase64Async(
+        string emvQrContent,
+        string? bankName = null,
+        string? bankBin = null,
+        string? bankLogoUrl = null,
+        string? template = "compact",
+        bool qrOnly = false,
+        string? accountNo = null,
+        string? accountName = null,
+        string? amount = null,
+        string? description = null,
+        string? bankFullName = null,
+        VietQrServiceType serviceType = VietQrServiceType.Account)
+    {
+        long? parsedAmt = null;
+        if (!string.IsNullOrWhiteSpace(amount))
         {
-            return GenerateQrOnlyBase64(emvQrContent);
+            var cleanedAmt = amount.Replace(",", "").Replace(".", "").Trim();
+            if (long.TryParse(cleanedAmt, out var val)) parsedAmt = val;
         }
+
+        var opt = new QrRenderOptions
+        {
+            Template = qrOnly ? "qr_only" : (template ?? "compact"),
+            BankBin = bankBin,
+            BankName = bankName,
+            BankFullName = bankFullName,
+            BankLogoUrl = bankLogoUrl,
+            AccountNo = accountNo,
+            AccountName = accountName,
+            Amount = parsedAmt,
+            Description = description,
+            ServiceType = serviceType
+        };
+
+        return GenerateVietQrBase64Async(emvQrContent, opt);
+    }
+
+    private (int Width, int Height) CalculateCardDimensions(QrRenderOptions options)
+    {
+        bool isPrint = string.Equals(options.Template, "print", StringComparison.OrdinalIgnoreCase);
+        if (!isPrint) return (540, 540);
+
+        var bankBin = options.BankBin;
+        var bankName = options.BankName;
+        var bankFullName = options.BankFullName;
+
+        if (!string.IsNullOrEmpty(bankBin))
+        {
+            var bankInfo = _bankCatalog.Find(bankBin);
+            if (bankInfo != null)
+            {
+                bankName ??= bankInfo.ShortName;
+                bankFullName ??= bankInfo.Name;
+            }
+        }
+        else if (!string.IsNullOrEmpty(bankName))
+        {
+            var bankInfo = _bankCatalog.Find(bankName);
+            if (bankInfo != null)
+            {
+                bankBin ??= bankInfo.Bin;
+                bankFullName ??= bankInfo.Name;
+            }
+        }
+
+        int lines = 0;
+        if (options.Amount is > 0) lines++;
+        if (!string.IsNullOrWhiteSpace(options.Description)) lines++;
+        if (!string.IsNullOrWhiteSpace(options.AccountName)) lines++;
+        if (!string.IsNullOrWhiteSpace(options.AccountNo)) lines++;
+        var displayBankName = !string.IsNullOrWhiteSpace(bankFullName) ? bankFullName.Trim() : (bankName ?? "");
+        if (!string.IsNullOrWhiteSpace(displayBankName)) lines++;
+
+        int canvasHeight = 590 + (lines * 28) + 16;
+        return (600, canvasHeight);
+    }
+
+    private async Task RenderCardCanvasAsync(
+        SKCanvas canvas,
+        int canvasWidth,
+        int canvasHeight,
+        string emvQrContent,
+        QrRenderOptions options)
+    {
+        var bankBin = options.BankBin;
+        var bankName = options.BankName;
+        var bankFullName = options.BankFullName;
+        var bankLogoUrl = options.BankLogoUrl;
+        var template = options.Template;
+        var accountNo = options.AccountNo;
+        var accountName = options.AccountName;
+        var description = options.Description;
+        var serviceType = options.ServiceType;
 
         // Tự động map tên ngân hàng và logo nếu chỉ truyền bankBin hoặc bankName
         if (!string.IsNullOrEmpty(bankBin))
         {
-            var bankInfo = EmbeddedBankCatalog.Instance.Find(bankBin);
+            var bankInfo = _bankCatalog.Find(bankBin);
             if (bankInfo != null)
             {
                 bankName ??= bankInfo.ShortName;
@@ -113,7 +442,7 @@ public class QrImageService
         }
         else if (!string.IsNullOrEmpty(bankName))
         {
-            var bankInfo = EmbeddedBankCatalog.Instance.Find(bankName);
+            var bankInfo = _bankCatalog.Find(bankName);
             if (bankInfo != null)
             {
                 bankBin ??= bankInfo.Bin;
@@ -127,8 +456,12 @@ public class QrImageService
 
         if (isPrint)
         {
-            string formattedAmount = FormatAmountVnd(amount);
-            printLines.Add(($"Số tiền: {formattedAmount}", false, 16f));
+            // Chỉ hiển thị dòng Số tiền khi có số tiền thanh toán (> 0 cho QR động); QR tĩnh không in dòng 0 VND
+            if (options.Amount is > 0)
+            {
+                string formattedAmount = FormatAmountVnd(options.Amount.Value.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                printLines.Add(($"Số tiền: {formattedAmount}", false, 16f));
+            }
 
             if (!string.IsNullOrWhiteSpace(description))
             {
@@ -142,7 +475,8 @@ public class QrImageService
 
             if (!string.IsNullOrWhiteSpace(accountNo))
             {
-                printLines.Add(($"Số TK: {accountNo.Trim()}", true, 18f));
+                string label = serviceType == VietQrServiceType.Card ? "Số thẻ" : "Số TK";
+                printLines.Add(($"{label}: {accountNo.Trim()}", true, 18f));
             }
 
             var displayBankName = !string.IsNullOrWhiteSpace(bankFullName) ? bankFullName.Trim() : (bankName ?? "");
@@ -155,11 +489,9 @@ public class QrImageService
         using var qrGenerator = new QRCodeGenerator();
         var qrData = qrGenerator.CreateQrCode(emvQrContent, QRCodeGenerator.ECCLevel.Q);
 
-        int canvasWidth = isPrint ? 600 : 540;
-        int canvasHeight = isPrint ? 590 + (printLines.Count * 28) + 16 : 540;
-        using var surface = SKSurface.Create(new SKImageInfo(canvasWidth, canvasHeight));
-        var canvas = surface.Canvas;
-        canvas.Clear(SKColors.White);
+        var bgColor = SKColors.White;
+        var moduleColor = SKColors.Black;
+        canvas.Clear(bgColor);
 
         var highSampling = new SKSamplingOptions(SKCubicResampler.Mitchell);
 
@@ -192,7 +524,7 @@ public class QrImageService
         };
         canvas.DrawRect(new SKRect(frameX, frameY, frameX + qrFrameSize, frameY + qrFrameSize), borderPaint);
 
-        // Chuẩn vietqr.io: Khoảng cách giữa viền xanh và mã QR chỉ ~9px (loại bỏ quiet zone 4 modules mặc định của QRCoder)
+        // Chuẩn vietqr.io: Khoảng cách giữa viền xanh và mã QR chỉ ~9px
         int padding = 9;
         int innerQrSize = qrFrameSize - (padding * 2);
         int innerQrX = frameX + padding;
@@ -201,7 +533,6 @@ public class QrImageService
         var matrix = qrData.ModuleMatrix;
         int totalModules = matrix.Count;
 
-        // Bỏ qua lề trắng (quiet zone) 4 module mặc định của QRCoder để QR sát với viền
         int quietZone = 0;
         while (quietZone < totalModules && !HasAnyTrueModule(matrix[quietZone]))
         {
@@ -219,7 +550,7 @@ public class QrImageService
 
         using var qrModulePaint = new SKPaint
         {
-            Color = SKColors.Black,
+            Color = moduleColor,
             Style = SKPaintStyle.Fill,
             IsAntialias = false
         };
@@ -241,7 +572,10 @@ public class QrImageService
         }
 
         // Icon trung tâm QR
-        using var centerIconBmp = LoadCenterIconBitmap();
+        using var centerIconBmp = options.CustomCenterLogo != null && options.CustomCenterLogo.Length > 0
+            ? SKBitmap.Decode(options.CustomCenterLogo)
+            : LoadCenterIconBitmap();
+
         if (centerIconBmp != null)
         {
             int boxSize = 58;
@@ -250,7 +584,7 @@ public class QrImageService
 
             using var bgPaint = new SKPaint
             {
-                Color = SKColors.White,
+                Color = bgColor,
                 Style = SKPaintStyle.Fill,
                 IsAntialias = true
             };
@@ -269,9 +603,8 @@ public class QrImageService
         int targetVisualHeight = 35;
 
         using var napasBmp = LoadNapasLogoBitmap();
-        using var bankBmp = await GetBankLogoBitmapAsync(bankBin, bankLogoUrl, bankName);
+        using var bankBmp = await GetBankLogoBitmapAsync(bankBin, bankLogoUrl, bankName).ConfigureAwait(false);
 
-        // Chuẩn bị kích thước và tâm đứng Napas
         int napasW = 0, napasH = 0;
         SKRect napasSrcRect = SKRect.Empty;
         float napasCenterY = 0;
@@ -285,21 +618,19 @@ public class QrImageService
             napasH = (int)(napasSrcRect.Height * scale);
         }
 
-        // Chuẩn bị kích thước và tâm đứng Bank logo
         int bankW = 0, bankH = 0;
         SKRect bankSrcRect = SKRect.Empty;
         float bankCenterY = 0;
         float bankScale = scale;
         SKRect bankTextBounds = SKRect.Empty;
-        using var fallbackFont = new SKFont(SKTypeface.FromFamilyName("Arial", SKFontStyle.Bold), 24);
+        using var fallbackTf = GetPreferredTypeface(SKFontStyle.Bold);
+        using var fallbackFont = new SKFont(fallbackTf, 24) { Embolden = true };
         using var fallbackPaint = new SKPaint { Color = new SKColor(0, 82, 155), IsAntialias = true };
 
         if (bankBmp != null)
         {
             (bankSrcRect, bankCenterY) = GetVisualBounds(bankBmp);
 
-            // Tính scale phù hợp: Với template chuẩn lớn (>=800px) thì đồng bộ scale với napas,
-            // với các logo kích thước độc lập (như MoMo 93x34, ZaloPay, Cake...) thì scale theo chiều cao mục tiêu.
             bankScale = (float)targetVisualHeight / Math.Max(1f, bankSrcRect.Height);
             if (bankBmp.Width >= 800 && bankBmp.Height >= 300)
             {
@@ -325,7 +656,6 @@ public class QrImageService
             bankH = (int)bankTextBounds.Height;
         }
 
-        // Tính toán căn giữa toàn bộ cụm: [Napas247] | [Ngân hàng]
         int gap = 14;
         int lineWidth = 2;
         int totalGroupWidth = napasW + gap + lineWidth + gap + bankW;
@@ -335,7 +665,6 @@ public class QrImageService
         int sepX = napasX + napasW + gap + (lineWidth / 2);
         int bankX = sepX + (lineWidth / 2) + gap;
 
-        // Vẽ đường phân cách dọc |
         using var linePaint = new SKPaint
         {
             Color = new SKColor(0, 59, 112),
@@ -344,7 +673,6 @@ public class QrImageService
         };
         canvas.DrawLine(sepX, footerCenterY - 18, sepX, footerCenterY + 18, linePaint);
 
-        // Vẽ logo Napas247 căn chỉnh thẳng hàng ngang theo tâm chữ
         if (napasBmp != null)
         {
             float napasVisualOffset = napasCenterY - napasSrcRect.Top;
@@ -353,7 +681,6 @@ public class QrImageService
             canvas.DrawBitmap(napasBmp, napasSrcRect, new SKRect(napasX, napasY, napasX + napasW, napasY + napasH), highSampling, napasPaint);
         }
 
-        // Vẽ logo ngân hàng căn chỉnh thẳng hàng ngang theo tâm chữ
         if (bankBmp != null)
         {
             float bankVisualOffset = bankCenterY - bankSrcRect.Top;
@@ -367,7 +694,6 @@ public class QrImageService
             canvas.DrawText(bankName, bankX, textY, SKTextAlign.Left, fallbackFont, fallbackPaint);
         }
 
-        // Vẽ các dòng thông tin bổ sung cho template 'print'
         if (isPrint && printLines.Count > 0)
         {
             using var textPaint = new SKPaint
@@ -383,60 +709,30 @@ public class QrImageService
             foreach (var line in printLines)
             {
                 using var font = new SKFont(line.IsBold ? tfBold : tfRegular, line.FontSize);
+                if (line.IsBold)
+                {
+                    font.Embolden = true;
+                }
                 canvas.DrawText(line.Text, canvasWidth / 2f, currentY, SKTextAlign.Center, font, textPaint);
                 currentY += line.IsBold ? 29f : 26f;
             }
         }
-
-        using var image = surface.Snapshot();
-        using var data = image.Encode(SKEncodedImageFormat.Png, 100);
-        string base64 = Convert.ToBase64String(data.ToArray());
-
-        return $"data:image/png;base64,{base64}";
     }
 
-    /// <summary>
-    /// Tạo ảnh chỉ chứa mã QR và icon VietQR ở chính giữa (chuẩn template 'qr_only').
-    /// </summary>
-    /// <param name="emvQrContent">Chuỗi nội dung mã QR chuẩn EMVCo.</param>
-    /// <param name="size">Kích thước ảnh vuông xuất ra (mặc định 500x500 px).</param>
-    /// <returns>Chuỗi Data URL Base64 (data:image/png;base64,...).</returns>
-    public string GenerateQrOnlyBase64(string emvQrContent, int size = 500)
+    private SKSurface CreateQrOnlySurface(string emvQrContent, QrRenderOptions options)
     {
-        var bytes = GenerateQrOnlyBytes(emvQrContent, size);
-        string base64 = Convert.ToBase64String(bytes);
-        return $"data:image/png;base64,{base64}";
-    }
-
-    /// <summary>
-    /// Tạo ảnh chỉ chứa mã QR và icon VietQR ở chính giữa (bất đồng bộ).
-    /// </summary>
-    public Task<string> GenerateQrOnlyBase64Async(string emvQrContent, int size = 500)
-    {
-        return Task.FromResult(GenerateQrOnlyBase64(emvQrContent, size));
-    }
-
-    /// <summary>
-    /// Tạo mảng byte ảnh PNG chỉ chứa mã QR và icon VietQR ở chính giữa (chuẩn template 'qr_only').
-    /// </summary>
-    public byte[] GenerateQrOnlyBytes(string emvQrContent, int size = 500)
-    {
-        if (string.IsNullOrWhiteSpace(emvQrContent))
-        {
-            throw new ArgumentException("Chuỗi nội dung mã QR (emvQrContent) không được để trống.", nameof(emvQrContent));
-        }
-
-        if (size <= 0) size = 500;
-
+        int size = options.Size > 0 ? options.Size : 500;
         using var qrGenerator = new QRCodeGenerator();
         var qrData = qrGenerator.CreateQrCode(emvQrContent, QRCodeGenerator.ECCLevel.Q);
 
-
-        using var surface = SKSurface.Create(new SKImageInfo(size, size));
+        var surface = SKSurface.Create(new SKImageInfo(size, size));
         var canvas = surface.Canvas;
-        canvas.Clear(SKColors.White);
 
-        int padding = Math.Max(10, (int)(size * 0.02)); // Margin 10px chuẩn vietqr.io
+        var bgColor = SKColors.White;
+        var moduleColor = SKColors.Black;
+        canvas.Clear(bgColor);
+
+        int padding = Math.Max(10, (int)(size * 0.02));
         int innerQrSize = size - (padding * 2);
 
         var matrix = qrData.ModuleMatrix;
@@ -459,7 +755,7 @@ public class QrImageService
 
         using var qrModulePaint = new SKPaint
         {
-            Color = SKColors.Black,
+            Color = moduleColor,
             Style = SKPaintStyle.Fill,
             IsAntialias = false
         };
@@ -480,17 +776,24 @@ public class QrImageService
             }
         }
 
-        using var centerIconBmp = LoadCenterIconBitmap();
+        using var centerIconBmp = options.CustomCenterLogo != null && options.CustomCenterLogo.Length > 0
+            ? SKBitmap.Decode(options.CustomCenterLogo)
+            : LoadCenterIconBitmap();
+
         if (centerIconBmp != null)
         {
-            int boxSize = (int)(innerQrSize * 0.18);
+            float ratio = options.CenterLogoRatio > 0 && options.CenterLogoRatio <= 0.35f
+                ? options.CenterLogoRatio
+                : 0.18f;
+
+            int boxSize = (int)(innerQrSize * ratio);
             int boxX = (size - boxSize) / 2;
             int boxY = (size - boxSize) / 2;
             int cornerRadius = Math.Max(4, (int)(boxSize * 0.12));
 
             using var bgPaint = new SKPaint
             {
-                Color = SKColors.White,
+                Color = bgColor,
                 Style = SKPaintStyle.Fill,
                 IsAntialias = true
             };
@@ -505,8 +808,65 @@ public class QrImageService
             canvas.DrawBitmap(centerIconBmp, new SKRect(iconX, iconY, iconX + iconSize, iconY + iconSize), highSampling, iconPaint);
         }
 
+        return surface;
+    }
+
+    /// <summary>
+    /// Tạo ảnh chỉ chứa mã QR và icon VietQR ở chính giữa (chuẩn template 'qr_only').
+    /// </summary>
+    /// <param name="emvQrContent">Chuỗi nội dung mã QR chuẩn EMVCo.</param>
+    /// <param name="size">Kích thước ảnh vuông xuất ra (mặc định 500x500 px).</param>
+    /// <returns>Chuỗi Data URL Base64 (data:image/png;base64,...).</returns>
+    public string GenerateQrOnlyBase64(string emvQrContent, int size = 500)
+    {
+        var opt = new QrRenderOptions { Template = "qr_only", Size = size, Format = QrImageFormat.Png };
+        var (skFormat, quality, mime) = ResolveFormat(opt);
+        using var surface = CreateQrOnlySurface(emvQrContent, opt);
         using var image = surface.Snapshot();
-        using var data = image.Encode(SKEncodedImageFormat.Png, 100);
+        using var data = image.Encode(skFormat!.Value, quality);
+        string base64 = Convert.ToBase64String(data.ToArray());
+        return $"data:{mime};base64,{base64}";
+    }
+
+    /// <summary>
+    /// Tạo ảnh chỉ chứa mã QR và icon VietQR ở chính giữa (bất đồng bộ).
+    /// </summary>
+    public Task<string> GenerateQrOnlyBase64Async(string emvQrContent, int size = 500)
+    {
+        return Task.FromResult(GenerateQrOnlyBase64(emvQrContent, size));
+    }
+
+    /// <summary>
+    /// Tạo mảng byte ảnh PNG chỉ chứa mã QR và icon VietQR ở chính giữa (chuẩn template 'qr_only').
+    /// </summary>
+    public byte[] GenerateQrOnlyBytes(string emvQrContent, int size = 500)
+    {
+        return GenerateQrOnlyBytes(emvQrContent, new QrRenderOptions { Template = "qr_only", Size = size, Format = QrImageFormat.Png });
+    }
+
+    /// <summary>
+    /// Tạo mảng byte ảnh chỉ chứa mã QR và icon trung tâm với các tùy chọn QrRenderOptions.
+    /// </summary>
+    public byte[] GenerateQrOnlyBytes(string emvQrContent, QrRenderOptions? options)
+    {
+        if (string.IsNullOrWhiteSpace(emvQrContent))
+        {
+            throw new ArgumentException("Chuỗi nội dung mã QR (emvQrContent) không được để trống.", nameof(emvQrContent));
+        }
+
+        var opt = options ?? new QrRenderOptions { Template = "qr_only" };
+        if (opt.Format == QrImageFormat.Svg)
+        {
+            using var ms = new MemoryStream();
+            RenderToStreamAsync(emvQrContent, ms, opt).GetAwaiter().GetResult();
+            return ms.ToArray();
+        }
+
+        var (skFormat, quality, _) = ResolveFormat(opt);
+
+        using var surface = CreateQrOnlySurface(emvQrContent, opt);
+        using var image = surface.Snapshot();
+        using var data = image.Encode(skFormat!.Value, quality);
         return data.ToArray();
     }
 
@@ -531,20 +891,20 @@ public class QrImageService
             var embBytes = GetEmbeddedResourceBytes($"VietQR.Core.Resources.logos.{cleanBin}.png");
             if (embBytes != null && embBytes.Length > 0)
             {
-                LogoCache[cacheKey] = embBytes;
+                CacheLogo(cacheKey, embBytes);
                 return Task.FromResult<SKBitmap?>(SKBitmap.Decode(embBytes));
             }
         }
 
         // 2. Tra cứu mã BIN qua Catalog bộ nhớ từ tên/mã ngân hàng
-        var bankInfo = EmbeddedBankCatalog.Instance.Find(cleanBin)
-                    ?? EmbeddedBankCatalog.Instance.Find(cleanName);
+        var bankInfo = _bankCatalog.Find(cleanBin)
+                    ?? _bankCatalog.Find(cleanName);
         if (bankInfo != null && !string.IsNullOrEmpty(bankInfo.Bin))
         {
             var embBytes = GetEmbeddedResourceBytes($"VietQR.Core.Resources.logos.{bankInfo.Bin}.png");
             if (embBytes != null && embBytes.Length > 0)
             {
-                LogoCache[cacheKey] = embBytes;
+                CacheLogo(cacheKey, embBytes);
                 return Task.FromResult<SKBitmap?>(SKBitmap.Decode(embBytes));
             }
         }
@@ -555,7 +915,7 @@ public class QrImageService
             try
             {
                 var bytes = File.ReadAllBytes(bankLogoUrl);
-                LogoCache[cacheKey] = bytes;
+                CacheLogo(cacheKey, bytes);
                 return Task.FromResult<SKBitmap?>(SKBitmap.Decode(bytes));
             }
             catch (Exception ex)
@@ -579,7 +939,7 @@ public class QrImageService
                     try
                     {
                         var bytes = File.ReadAllBytes(path);
-                        LogoCache[cacheKey] = bytes;
+                        CacheLogo(cacheKey, bytes);
                         return Task.FromResult<SKBitmap?>(SKBitmap.Decode(bytes));
                     }
                     catch { }
@@ -746,8 +1106,37 @@ public class QrImageService
         return $"{rawAmount} VND";
     }
 
+    private static readonly Lazy<SKData?> EmbeddedFontData = new(() =>
+    {
+        try
+        {
+            var assembly = typeof(QrImageService).Assembly;
+            using var stream = assembly.GetManifestResourceStream("VietQR.Core.Resources.fonts.GoogleSans-Regular.ttf");
+            if (stream != null)
+            {
+                using var ms = new MemoryStream();
+                stream.CopyTo(ms);
+                return SKData.CreateCopy(ms.ToArray());
+            }
+        }
+        catch
+        {
+            // Bỏ qua lỗi và fallback sang system fonts nếu có sự cố
+        }
+        return null;
+    });
+
     private static SKTypeface GetPreferredTypeface(SKFontStyle style)
     {
+        if (EmbeddedFontData.Value != null)
+        {
+            var embeddedTf = SKTypeface.FromData(EmbeddedFontData.Value);
+            if (embeddedTf != null)
+            {
+                return embeddedTf;
+            }
+        }
+
         var fontNames = new[] { "Arial", "Segoe UI", "SF Pro Text", "Roboto", "DejaVu Sans", "Liberation Sans" };
         foreach (var name in fontNames)
         {

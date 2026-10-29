@@ -52,6 +52,8 @@ public class QrCodesController : ControllerBase
     /// <param name="description">Nội dung chuyển khoản (tối đa 95 ký tự).</param>
     /// <param name="accountName">Tên chủ tài khoản (tùy chọn, hiển thị khi dùng mẫu 'print').</param>
     /// <param name="template">Mẫu thiết kế ảnh thẻ: 'compact' (mặc định), 'qr_only' hoặc 'print'.</param>
+    /// <param name="serviceType">Loại dịch vụ chuyển tiền: 'account' (mặc định - QRIBFTTA) hoặc 'card' (QRIBFTTC).</param>
+    /// <param name="billNumber">Số hóa đơn / mã đơn hàng (tùy chọn, Tag 62.01 tối đa 25 ký tự).</param>
     /// <response code="200">Tạo mã VietQR và render ảnh thành công (trả về qrCode và chuỗi Base64 qrDataURL).</response>
     /// <response code="400">Tham số yêu cầu không hợp lệ (mã code 01, 02, 03, 04, 05).</response>
     /// <response code="500">Lỗi ngoại lệ trong quá trình xử lý trên máy chủ (mã code 99).</response>
@@ -67,7 +69,9 @@ public class QrCodesController : ControllerBase
         [FromQuery] string? amount = null,
         [FromQuery] string? description = null,
         [FromQuery] string? accountName = null,
-        [FromQuery] string? template = "compact")
+        [FromQuery] string? template = "compact",
+        [FromQuery] string? serviceType = null,
+        [FromQuery] string? billNumber = null)
     {
         try
         {
@@ -154,10 +158,20 @@ public class QrCodesController : ControllerBase
                 });
             }
 
+            var resolvedServiceType = VietQrServiceType.Account;
+            if (!string.IsNullOrWhiteSpace(serviceType))
+            {
+                var st = serviceType.Trim().ToLowerInvariant();
+                if (st is "card" or "qribfttc" or "1")
+                {
+                    resolvedServiceType = VietQrServiceType.Card;
+                }
+            }
+
             var qrBuilder = new VietQr()
-                .SetBeneficiaryOrganization(cleanBin, cleanAccountNo)
+                .SetBeneficiaryOrganization(cleanBin, cleanAccountNo, resolvedServiceType)
                 .SetTransactionAmount(cleanAmount)
-                .SetAdditionalDataFieldTemplate(cleanDescription);
+                .SetAdditionalData(purpose: cleanDescription, billNumber: billNumber);
 
             var finalQrContent = qrBuilder.Build();
             var resolvedBankName = bankInfo?.ShortName ?? cleanBin;
@@ -174,7 +188,8 @@ public class QrCodesController : ControllerBase
                 accountName: accountName?.Trim(),
                 amount: cleanAmount,
                 description: cleanDescription,
-                bankFullName: bankInfo?.Name);
+                bankFullName: bankInfo?.Name,
+                serviceType: resolvedServiceType);
 
             return Ok(new
             {

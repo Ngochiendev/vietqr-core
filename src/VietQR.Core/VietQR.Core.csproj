@@ -1,7 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <!-- Local build bằng SDK 8 chỉ tạo net6/net8; khi SDK >= 9 (CI hoặc local cài SDK mới) sẽ thêm net9/net10 -->
     <TargetFrameworks>net6.0;net8.0</TargetFrameworks>
     <TargetFrameworks Condition="$([MSBuild]::VersionGreaterThanOrEquals('$(NETCoreSdkVersion)', '9.0.100'))">$(TargetFrameworks);net9.0;net10.0</TargetFrameworks>
     <RootNamespace>VietQR.Core</RootNamespace>
@@ -14,7 +13,7 @@
     <Version>1.0.1</Version>
     <Authors>Hien Dev</Authors>
     <Company>Ngochiendev</Company>
-    <Description>Thư viện .NET hỗ trợ tạo chuỗi và render ảnh mã QR thanh toán theo chuẩn VietQR (NAPAS247).</Description>
+    <Description>Thư viện .NET tạo, giải mã chuỗi QR thanh toán EMVCo/NAPAS247 và render thẻ VietQR (PNG/WebP/SVG) với danh mục ngân hàng và font nhúng sẵn.</Description>
     <PackageTags>vietqr;napas247;qrcode;emvco;payment;vietnam;csharp;dotnet</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/Ngochiendev/vietqr-core</RepositoryUrl>
@@ -22,18 +21,22 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageProjectUrl>https://github.com/Ngochiendev/vietqr-core</PackageProjectUrl>
     <PackageIcon>vietqr_icon.png</PackageIcon>
-    <!-- Release notes mặc định cho các bản build local / không chạy qua CI.
-         CI sẽ ghi đè bằng file version.props (see Import below) sinh từ git log. -->
     <PackageReleaseNotes>See https://github.com/Ngochiendev/vietqr-core/releases for the latest release notes.</PackageReleaseNotes>
+
+    <!-- SourceLink, Symbols & Deterministic Builds -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
 
-  <!-- CI (publish-nuget.yml) sinh file này ở repo root khi pack: chứa Version + PackageReleaseNotes
-       của lần build đó, sinh tự động từ git log. Import đặt sau PropertyGroup nên giá trị trong
-       version.props ghi đè được defaults phía trên. Build local không có file này → dùng defaults. -->
-  <Import Project="$(MSBuildProjectDirectory)\..\..\version.props"
-          Condition="Exists('$(MSBuildProjectDirectory)\..\..\version.props')" />
+  <Import Project="$(MSBuildProjectDirectory)\..\..\version.props" Condition="Exists('$(MSBuildProjectDirectory)\..\..\version.props')" />
 
   <ItemGroup>
+    <PackageReference Include="DotNet.ReproducibleBuilds" Version="2.0.5">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="QRCoder" Version="1.8.1" />
     <PackageReference Include="SkiaSharp" Version="4.153.1" />
     <PackageReference Include="SkiaSharp.NativeAssets.macOS" Version="4.153.1" />
@@ -42,6 +45,7 @@
     <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.0" />
+    <PackageReference Include="ZXing.Net" Version="0.16.9" />
   </ItemGroup>
 
   <ItemGroup>
@@ -54,6 +58,7 @@
     <!-- Ảnh README dùng đường dẫn tương đối: pack cùng cấu trúc thư mục để NuGet.org render đúng -->
     <None Include="Resources\vietqr.png" Pack="true" PackagePath="src/VietQR.Core/Resources\" />
     <None Include="Resources\napas247.png" Pack="true" PackagePath="src/VietQR.Core/Resources\" />
+    <None Include="Resources\examples\*.png" Pack="true" PackagePath="Resources/examples\" />
     <None Include="..\..\docs\image\*.png" Pack="true" PackagePath="docs\image\" />
   </ItemGroup>
 
@@ -63,6 +68,7 @@
     <EmbeddedResource Include="Resources\napas247.png" LogicalName="VietQR.Core.Resources.napas247.png" />
     <EmbeddedResource Include="Resources\banks.json" LogicalName="VietQR.Core.Resources.banks.json" />
     <EmbeddedResource Include="Resources\logos\*.png" LogicalName="VietQR.Core.Resources.logos.%(Filename)%(Extension)" />
+    <EmbeddedResource Include="Resources\fonts\*.ttf" LogicalName="VietQR.Core.Resources.fonts.%(Filename)%(Extension)" />
   </ItemGroup>
 
 </Project>

@@ -21,13 +21,38 @@ public enum VietQrServiceType
 }
 
 /// <summary>
+/// Loại mã VietQR theo chuẩn khởi tạo NAPAS247 / EMVCo (Tag 01 Point of Initiation Method):
+/// - Static: Mã QR tĩnh ("11") - khách quét tự nhập số tiền khi thanh toán.
+/// - Dynamic: Mã QR động ("12") - mã gắn số tiền thanh toán cố định cho đơn hàng/giao dịch.
+/// </summary>
+public enum VietQrType
+{
+    /// <summary>
+    /// Mã QR Tĩnh (Tag 01 = "11"): Dùng nhiều lần, không gắn cứng số tiền (Mục 6.1.1, 6.1.2 NAPAS).
+    /// </summary>
+    Static,
+
+    /// <summary>
+    /// Mã QR Động (Tag 01 = "12"): Dùng theo từng giao dịch, gắn sẵn số tiền thanh toán (Mục 6.1.3, 6.1.4 NAPAS).
+    /// </summary>
+    Dynamic
+}
+
+/// <summary>
 /// Core tạo chuỗi mã thanh toán VietQR (chuẩn EMVCo / NAPAS247).
 /// Định dạng mã VietQR của NAPAS (QR_Format_T&amp;C_v1.0_VN_092021.pdf).
 /// </summary>
 public class VietQr : IQrGenerator
 {
     public string Generate(VietQrRequest request) =>
-        VietQrPayload.Create(request.Bin, request.AccountNo, request.Amount, request.Description, request.ServiceType);
+        VietQrPayload.Create(
+            request.Bin,
+            request.AccountNo,
+            request.EffectiveQrType,
+            request.ServiceType,
+            request.Amount,
+            request.Description,
+            request.BillNumber);
 
     // Tag 00: Payload Format Indicator (Mục 5.2.1 - Giá trị cố định "01")
     public const string DefaultPayloadFormatIndicator = "000201";
@@ -53,6 +78,8 @@ public class VietQr : IQrGenerator
     private string _pointOfInitiationMethod = MethodStatic;
     private string _consumerAccountInformation = "";
     private string _transactionAmount = "";
+    private string _merchantName = "";
+    private string _merchantCity = "";
     private string _additionalDataFieldTemplate = "";
     private bool _manualMethodOverride = false;
 
@@ -80,6 +107,12 @@ public class VietQr : IQrGenerator
         _manualMethodOverride = true;
         return this;
     }
+
+    /// <summary>
+    /// Chọn phương thức khởi tạo thủ công theo VietQrType (Static = "11", Dynamic = "12").
+    /// </summary>
+    public VietQr SetPointOfInitiationMethod(VietQrType qrType) =>
+        SetPointOfInitiationMethod(qrType == VietQrType.Dynamic);
 
     /// <summary>
     /// Thiết lập số tiền giao dịch (Tag 54 - Tối đa 13 chữ số, mục 5.2.6).
@@ -147,40 +180,97 @@ public class VietQr : IQrGenerator
     }
 
     /// <summary>
-    /// Thiết lập thông tin bổ sung (Tag 62 - Mục 5.2.14):
-    /// - Sub-ID 01: Số hóa đơn (Bill Number - tối đa 25 ký tự)
-    /// - Sub-ID 08: Mục đích giao dịch / Nội dung thanh toán (Purpose - tối đa 25 ký tự theo chuẩn NAPAS Bảng 8)
-    /// Đảm bảo tổng độ dài Tag 62 không bao giờ vượt quá 99 ký tự, không gây lệch chuẩn TLV.
+    /// Thiết lập các trường dữ liệu bổ sung trong Tag 62 (Additional Data Field Template) theo chuẩn NAPAS247 và EMVCo.
     /// </summary>
-    public VietQr SetAdditionalData(string? purpose = null, string? billNumber = null)
+    public VietQr SetAdditionalData(AdditionalDataOptions? options)
+    {
+        if (options == null)
+        {
+            _additionalDataFieldTemplate = "";
+            return this;
+        }
+
+        return SetAdditionalData(
+            purpose: options.Purpose,
+            billNumber: options.BillNumber,
+            referenceLabel: options.ReferenceLabel);
+    }
+
+    /// <summary>
+    /// Thiết lập thông tin bổ sung (Tag 62 - Mục 5.2.14) theo chuẩn NAPAS247:
+    /// - Sub-ID 01: Số hóa đơn (Bill Number - tối đa 25 ký tự)
+    /// - Sub-ID 05: Mã đơn hàng tham chiếu / Order ID (Reference Label - tối đa 25 ký tự)
+    /// - Sub-ID 08: Mục đích giao dịch / Nội dung thanh toán (Purpose - tối đa 25 ký tự theo NAPAS Bảng 8)
+    /// </summary>
+    public VietQr SetAdditionalData(
+        string? purpose = null,
+        string? billNumber = null,
+        string? referenceLabel = null)
     {
         var innerSb = new StringBuilder();
 
-        // Số hóa đơn (Sub-tag 01)
+        void AppendSubTag(string id, string? val, int maxLen = 25)
+        {
+            if (string.IsNullOrWhiteSpace(val)) return;
+            var clean = RemoveDiacritics(val.Trim());
+            int remainingSpace = 99 - innerSb.Length - 4;
+            if (remainingSpace <= 0) return;
+            int limit = Math.Min(maxLen, remainingSpace);
+            if (clean.Length > limit) clean = clean[..limit];
+            innerSb.Append($"{id}{ConvertLength(clean.Length)}{clean}");
+        }
+
+        // Sub-tag 01: Bill Number
         if (!string.IsNullOrWhiteSpace(billNumber))
         {
-            var b = RemoveDiacritics(billNumber.Trim());
-            if (b.Length > 25) b = b[..25];
-            innerSb.Append($"01{ConvertLength(b.Length)}{b}");
+            AppendSubTag("01", billNumber, 25);
             if (!_manualMethodOverride) _pointOfInitiationMethod = MethodDynamic;
         }
 
-        // Nội dung giao dịch (Sub-tag 08)
-        if (!string.IsNullOrWhiteSpace(purpose))
+        // Sub-tag 05: Reference Label (Order ID)
+        if (!string.IsNullOrWhiteSpace(referenceLabel))
         {
-            var p = RemoveDiacritics(purpose.Trim());
-            // Giới hạn an toàn: Tổng Tag 62 không được vượt quá 99 ký tự
-            // Mỗi Sub-tag tiêu tốn 4 ký tự header (ID 2 ký tự + Length 2 ký tự)
-            int maxPurposeLength = 99 - innerSb.Length - 4;
-            if (maxPurposeLength > 0)
-            {
-                if (p.Length > maxPurposeLength) p = p[..maxPurposeLength];
-                innerSb.Append($"08{ConvertLength(p.Length)}{p}");
-            }
+            AppendSubTag("05", referenceLabel, 25);
+            if (!_manualMethodOverride) _pointOfInitiationMethod = MethodDynamic;
         }
+
+        // Sub-tag 08: Purpose of Transaction (Nội dung CK)
+        AppendSubTag("08", purpose, 25);
 
         var inner = innerSb.ToString();
         _additionalDataFieldTemplate = inner.Length > 0 ? $"62{ConvertLength(inner.Length)}{inner}" : "";
+        return this;
+    }
+
+    /// <summary>
+    /// Thiết lập thông tin điểm bán / đơn vị chấp nhận thanh toán (Tag 59 Merchant Name &amp; Tag 60 Merchant City).
+    /// Tự động chuẩn hóa chữ HOA không dấu theo quy định NAPAS247.
+    /// </summary>
+    /// <param name="name">Tên điểm bán / tên chủ tài khoản (Tag 59 - tối đa 25 ký tự).</param>
+    /// <param name="city">Tên thành phố / địa phương (Tag 60 - tối đa 15 ký tự, mặc định "HANOI").</param>
+    public VietQr SetMerchantInfo(string? name, string? city = "HANOI")
+    {
+        if (!string.IsNullOrWhiteSpace(name))
+        {
+            var n = RemoveDiacritics(name.Trim()).ToUpperInvariant();
+            if (n.Length > 25) n = n[..25];
+            _merchantName = $"59{ConvertLength(n.Length)}{n}";
+        }
+        else
+        {
+            _merchantName = "";
+        }
+
+        if (!string.IsNullOrWhiteSpace(city))
+        {
+            var c = RemoveDiacritics(city.Trim()).ToUpperInvariant();
+            if (c.Length > 15) c = c[..15];
+            _merchantCity = $"60{ConvertLength(c.Length)}{c}";
+        }
+        else
+        {
+            _merchantCity = "";
+        }
 
         return this;
     }
@@ -292,6 +382,14 @@ public class VietQr : IQrGenerator
     {
         if (string.IsNullOrWhiteSpace(content)) return null;
 
+        // Ưu tiên dùng VietQrParser chuẩn TLV (chống rủi ro substring collision trong Tag 62)
+        var parseResult = VietQrParser.Parse(content, new VietQrParseOptions { StrictCrc = false });
+        if (parseResult.IsSuccess && parseResult.Value != null && !string.IsNullOrEmpty(parseResult.Value.BankBin))
+        {
+            return parseResult.Value.BankBin;
+        }
+
+        // Fallback logic tìm chuỗi
         int aidIdx = content.IndexOf("A000000727", StringComparison.OrdinalIgnoreCase);
         if (aidIdx >= 0)
         {
@@ -318,6 +416,8 @@ public class VietQr : IQrGenerator
             DefaultCurrency,
             _transactionAmount,
             DefaultCountry,
+            _merchantName,
+            _merchantCity,
             _additionalDataFieldTemplate,
             "6304");
 
