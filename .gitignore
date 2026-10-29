@@ -23,6 +23,9 @@ nupkgs/
 *.coveragexml
 coverage/
 
+tests/
+.agents
+
 ## --- Project Generated Test & Benchmark Artifacts ---
 # File HTML tổng hợp ảnh 76 ngân hàng sinh ra trong quá trình chạy test
 tests/all_banks_gallery.html
@@ -64,6 +67,7 @@ _ReSharper*/
 ._*
 .Spotlight-V100
 .Trashes
+.codegraph
 
 # Windows
 Thumbs.db
@@ -89,7 +93,6 @@ appsettings.Production.json.local
 *.crash
 *.vsp
 *.vspx
-tests/
 
 # Sinh bởi CI (publish-nuget.yml) khi pack - đừng commit
 version.props
