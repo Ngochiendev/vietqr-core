@@ -21,18 +21,51 @@
 
 ---
 
+## 📢 Bối Cảnh Phát Triển & So Sánh Kỹ Thuật với Dịch Vụ VietQR.io
+
+### 1. Tại sao `VietQR.Core` ra đời?
+
+Ngày 14/10/2026, nhóm phát triển VietQR Payment Kit đã đưa ra **[Thông báo cập nhật chính thức](https://www.vietqr.io/thong-bao-cap-nhat)** với các thay đổi mang tính bước ngoặt:
+
+- **Ngừng cổng API Generate (`api.vietqr.io`) từ ngày 01/01/2027:** Bắt buộc mọi hệ thống doanh nghiệp phải chuyển sang thư viện `vietqr-core` để tạo mã QR trực tiếp trên hệ thống của mình, không còn phụ thuộc vào API mạng bên ngoài.
+- **Ngừng tiếp nhận Custom Theme / Template mới** trên cổng quản lý `my.vietqr.io`.
+
+Tuy nhiên, phía nhà cung cấp chỉ đưa ra thông báo chuyển đổi chung chung mà **chưa cung cấp một bộ mã nguồn (Source Code) mở, minh bạch, hoàn chỉnh và có kiến trúc rõ ràng cho cộng đồng lập trình viên .NET**.
+
+Chính vì vậy, dự án **`VietQR.Core`** này được phát triển độc lập với mục tiêu: Cung cấp cho cộng đồng .NET một giải pháp mã nguồn mở **chuẩn hóa 100% theo quy chuẩn NAPAS247 & EMVCo**, hoàn toàn miễn phí, kiến trúc trong suốt và đạt hiệu năng tối đa.
+
+---
+
+### 2. Bảng So Sánh Tính Năng & Kiến Trúc Kỹ Thuật
+
+Dưới đây là bảng đối chiếu giữa phương thức gọi API dịch vụ qua mạng và việc tích hợp trực tiếp thư viện `VietQR.Core` vào ứng dụng:
+
+| Tiêu chí                      |            Dịch vụ API qua mạng             | Thư viện `VietQR.Core` (In-process) | Ghi chú kỹ thuật                                                                |
+| :---------------------------- | :-----------------------------------------: | :---------------------------------: | :------------------------------------------------------------------------------ |
+| **Phương thức hoạt động**     |     Gửi HTTP request ra ngoài Internet      |   Tích hợp trực tiếp vào ứng dụng   | Chạy trực tiếp trong mã nguồn, không phát sinh network round-trip.              |
+| **Độ trễ xử lý (Latency)**    |   ~100 ms _(theo công bố mới của VietQR)_   |              ~1 - 5 ms              | Tạo ma trận QR trực tiếp trong RAM, không bị ảnh hưởng bởi độ trễ đường truyền. |
+| **Môi trường hoạt động**      |        Cần kết nối Internet liên tục        |          Hoạt động Offline          | Thích hợp cho mạng nội bộ (Intranet ngân hàng, Docker, On-premise).             |
+| **Bảo mật dữ liệu**           | Gửi thông tin thanh toán qua API bên thứ ba |        Dữ liệu xử lý nội bộ         | Thông tin số tài khoản và đơn hàng được giữ trọn vẹn trong hệ thống của bạn.    |
+| **Tùy biến mẫu & Logo**       |    Sử dụng mẫu mặc định của cổng dịch vụ    |     3 mẫu giao diện + Logo tâm      | Có sẵn mẫu `compact`, `print`, `qr_only` và hỗ trợ nhúng `CustomCenterLogo`.    |
+| **Định dạng xuất ảnh**        |            Ưu tiên định dạng SVG            |          SVG, WebP và PNG           | Hỗ trợ WebP tối ưu dung lượng và PNG tương thích rộng rãi.                      |
+| **Khả năng giải mã (Decode)** |            Chỉ tạo mã (1 chiều)             |    Hỗ trợ 2 chiều (Tạo & Đọc mã)    | Bổ sung `VietQrParser` và `VietQrDecoder` đọc dữ liệu từ chuỗi hoặc ảnh.        |
+| **Tối ưu chịu tải lớn**       |       Phụ thuộc giới hạn kết nối HTTP       |    Hỗ trợ `RenderToStreamAsync`     | Ghi thẳng dữ liệu ra luồng Stream, giảm tải cấp phát mảng byte lên LOH.         |
+| **Giấy phép & Chi phí**       |      Theo chính sách dịch vụ bên ngoài      |     Mã nguồn mở (Giấy phép MIT)     | Hoàn toàn miễn phí, tự do tùy biến và tích hợp vào các dự án thương mại.        |
+
+---
+
 ## 🖼️ Mẫu Thẻ Thanh Toán Thực Tế (Visual Showcase)
 
 Toàn bộ ảnh mẫu được sinh tự động bằng chính thư viện `VietQR.Core`:
 
-| Mẫu 1: `compact` (Mặc định) | Mẫu 2: `print` (Quầy thu ngân) | Mẫu 3: `card` (Thẻ ATM NAPAS) |
-| :---: | :---: | :---: |
-| <img src="docs/image/compact.png" alt="Mẫu Compact Tài khoản" width="220" /> | <img src="docs/image/print.png" alt="Mẫu In quầy thu ngân" width="220" /> | <img src="docs/image/card.png" alt="Mẫu Chuyển tiền qua Thẻ" width="220" /> |
-| **Chuyển nhanh đến STK**<br>Header VietQR, logo Napas & Ngân hàng. | **Thẻ in POS / Để bàn**<br>In to rõ Số tiền (VNĐ), Nội dung CK, Tên chủ TK. | **Chuyển nhanh đến Thẻ**<br>Định danh `QRIBFTTC`, tự động chuyển nhãn `"Số thẻ"`. |
+|                         Mẫu 1: `compact` (Mặc định)                          |                       Mẫu 2: `print` (Quầy thu ngân)                        |                           Mẫu 3: `card` (Thẻ ATM NAPAS)                           |
+| :--------------------------------------------------------------------------: | :-------------------------------------------------------------------------: | :-------------------------------------------------------------------------------: |
+| <img src="docs/image/compact.png" alt="Mẫu Compact Tài khoản" width="220" /> |  <img src="docs/image/print.png" alt="Mẫu In quầy thu ngân" width="220" />  |    <img src="docs/image/card.png" alt="Mẫu Chuyển tiền qua Thẻ" width="220" />    |
+|      **Chuyển nhanh đến STK**<br>Header VietQR, logo Napas & Ngân hàng.      | **Thẻ in POS / Để bàn**<br>In to rõ Số tiền (VNĐ), Nội dung CK, Tên chủ TK. | **Chuyển nhanh đến Thẻ**<br>Định danh `QRIBFTTC`, tự động chuyển nhãn `"Số thẻ"`. |
 
-| Mẫu 4: Tùy biến Logo Đối tác | Mẫu 5: `qr_only` (Mã QR vuông) |
-| :---: | :---: |
-| <img src="docs/image/custom_logo.png" alt="Custom Center Logo" width="220" /> | <img src="docs/image/qr_only.png" alt="Mã QR vuông tối giản" width="220" /> |
+|                          Mẫu 4: Tùy biến Logo Đối tác                          |                             Mẫu 5: `qr_only` (Mã QR vuông)                              |
+| :----------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------: |
+| <img src="docs/image/custom_logo.png" alt="Custom Center Logo" width="220" />  |       <img src="docs/image/qr_only.png" alt="Mã QR vuông tối giản" width="220" />       |
 | **Nhúng Logo Riêng ở Tâm**<br>Giữ mã QR đen trắng chuẩn (`#000000`/`#FFFFFF`). | **Mã QR Vuông Tinh Gọn**<br>Kích thước tùy chỉnh (`Size = 500`), có icon VietQR ở giữa. |
 
 ---
@@ -54,6 +87,7 @@ Mở trình duyệt truy cập Swagger UI:
 👉 **`http://localhost:5000/swagger`** (hoặc port hiển thị trên console).
 
 ### Các Endpoint chính:
+
 - **Tạo mã QR & Render ảnh:**
   `GET /api/v1/qr/generate?bin=970422&accountNo=056789799999&amount=2000&description=Thanh+toan+cafe`
 - **Tra cứu danh sách ngân hàng thành viên:**
@@ -197,25 +231,20 @@ app.MapGet("/api/qr", async (QrImageService qrService, string bin, string stk, l
 
 ---
 
-## 🤝 Đóng Góp & Quy Chuẩn Commit (Contributing)
+## 🤝 Đóng Góp (Contributing)
 
-Dự án rất hoan nghênh mọi đóng góp từ cộng đồng (Issue, Pull Request, Feature Request).
-Chi tiết xem tại [CONTRIBUTING.md](CONTRIBUTING.md).
+Dự án luôn hoan nghênh mọi đóng góp từ cộng đồng (Issue, Pull Request, Báo lỗi hoặc Đề xuất tính năng mới).  
+Vui lòng xem chi tiết quy trình cộng tác, tiêu chuẩn code và quy ước commit tại **[CONTRIBUTING.md](CONTRIBUTING.md)**.
 
-### Quy ước Commit (Conventional Commits):
-```text
-<type>(<scope>): <mô tả ngắn gọn>
-```
+---
 
-- `feat`: Thêm chức năng mới (VD: `feat(rendering): add webp support`)
-- `fix`: Sửa lỗi (VD: `fix(parser): fix padding issue in tag 62`)
-- `perf`: Tối ưu hiệu năng (VD: `perf(crc): optimize lookup table`)
-- `docs`: Cập nhật tài liệu (VD: `docs: update visual showcase in readme`)
-- `test`: Thêm hoặc sửa test case
+## 🙏 Lời Cảm Ơn (Acknowledgments)
+
+Xin gửi lời cảm ơn chân thành đến **[NAPAS (Công ty Cổ phần Thanh toán Quốc gia Việt Nam)](https://napas.com.vn)** cùng **[Sáng kiến VietQR](https://vietqr.net)** đã xây dựng chuẩn mực thanh toán số thông minh, tiện lợi cho hàng triệu người dân và doanh nghiệp Việt Nam, đồng thời cung cấp **[tài liệu quy chuẩn kỹ thuật](docs/QR_Format_T&C_v1.0_VN_092021.pdf)** làm cơ sở để cộng đồng cùng phát triển.
 
 ---
 
 ## 📄 Giấy Phép (License)
 
-Dự án được phân phối dưới giấy phép mã nguồn mở **[MIT License](LICENSE)**.
+Dự án được phân phối dưới giấy phép mã nguồn mở **[MIT License](LICENSE)**.  
 Bản quyền thuộc về © 2026 **Ngochiendev**.

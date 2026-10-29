@@ -98,7 +98,7 @@ jobs:
         run: |
           unzip -p ./nupkgs/VietQR.Core.$VERSION.nupkg VietQR.Core.nuspec | grep '<releaseNotes>'
           unzip -l ./nupkgs/VietQR.Core.$VERSION.nupkg | grep -E 'README.md|docs/image/(qr_only|compact|print).png'
-          ls -la ./nupkgs/VietQR.Core.$VERSION.snupkg
+          unzip -l ./nupkgs/VietQR.Core.$VERSION.snupkg | grep -E '\.pdb'
 
       - uses: NuGet/login@v1
         id: login

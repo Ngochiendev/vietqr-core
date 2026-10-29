@@ -28,6 +28,8 @@
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>portable</DebugType>
   </PropertyGroup>
 
   <Import Project="$(MSBuildProjectDirectory)\..\..\version.props" Condition="Exists('$(MSBuildProjectDirectory)\..\..\version.props')" />
