@@ -140,8 +140,8 @@ Canvas sizes, straight from the rendering code (`QrImageService.cs`):
 | `qr_only` | 500 × 500 (configurable via `QrRenderOptions.Size`)                | Minimal square QR with the VietQR logo in the center    |
 | `print`   | 600 × dynamic (590 px + 28 px per info line + 16 px bottom margin) | Receipt-style card with amount, transfer note, account  |
 
-| `qr_only`                                     | `compact`                                     | `print`                                  |
-| --------------------------------------------- | --------------------------------------------- | ---------------------------------------- |
+| `qr_only`                                        | `compact`                                         | `print`                                       |
+| ------------------------------------------------ | ------------------------------------------------- | --------------------------------------------- |
 | ![qr_only](Resources/examples/vietqr-qronly.png) | ![compact](Resources/examples/vietqr-compact.png) | ![print](Resources/examples/vietqr-print.png) |
 
 ### 4. Parse a payload and decode images
@@ -172,11 +172,11 @@ On failure `result.Error` carries a stable code from `VietQrErrors`
 
 `VietQrParseOptions` tunes the parser defaults:
 
-| Property           | Default | Description                                                                 |
+| Property           | Default | Description                                                                  |
 | ------------------ | ------- | ---------------------------------------------------------------------------- |
-| `StrictCrc`        | `true`  | Reject payloads whose CRC tag does not match the content.                     |
-| `MaxPayloadLength` | `1024`  | Cap on payload length before parsing (untrusted input from camera/webhooks).  |
-| `BankCatalog`      | `null`  | Custom `IBankCatalog`; defaults to the embedded catalog.                      |
+| `StrictCrc`        | `true`  | Reject payloads whose CRC tag does not match the content.                    |
+| `MaxPayloadLength` | `1024`  | Cap on payload length before parsing (untrusted input from camera/webhooks). |
+| `BankCatalog`      | `null`  | Custom `IBankCatalog`; defaults to the embedded catalog.                     |
 
 `VietQrDecoder.Decode` also accepts `Stream?` and `SKBitmap?` overloads, plus
 `DecodeAsync(...)` — see the public surface of `VietQrDecoder`.
@@ -268,12 +268,11 @@ See [CONTRIBUTING.md](https://github.com/Ngochiendev/vietqr-core/blob/main/CONTR
 Please include the NAPAS247 reference payload you expect, along with your test,
 for anything affecting generated output.
 
+## Disclaimer & Trademark
+
+VietQR® and NAPAS247® are registered trademarks of NAPAS (National Payment Corporation of Vietnam) and related entities. This project is an independent, non-profit open-source library and is not an official product of NAPAS or vietqr.io. Always verify the recipient account details before executing transactions. See [DISCLAIMER.md](https://github.com/Ngochiendev/vietqr-core/blob/main/DISCLAIMER.md).
+
 ## License
 
 Copyright © 2026 Ngochiendev.
 This project is [MIT-licensed](https://github.com/Ngochiendev/vietqr-core/blob/main/LICENSE).
-
-Payment QR codes reference bank accounts and transfer instructions; always
-verify the BIN, account number and amount against your own infrastructure
-before showing or rendering a QR to a customer. See
-[DISCLAIMER.md](https://github.com/Ngochiendev/vietqr-core/blob/main/DISCLAIMER.md).

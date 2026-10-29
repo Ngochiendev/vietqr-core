@@ -244,6 +244,13 @@ Xin gửi lời cảm ơn chân thành đến **[NAPAS (Công ty Cổ phần Tha
 
 ---
 
+## ⚠️ Tuyên Bố Miễn Trừ Trách Nhiệm (Disclaimer)
+
+- **Thương hiệu:** `VietQR`® và `NAPAS247`® là nhãn hiệu đã đăng ký thuộc quyền sở hữu của **NAPAS (Công ty Cổ phần Thanh toán Quốc gia Việt Nam)** và các tổ chức tương ứng. Dự án này là thư viện mã nguồn mở độc lập phi lợi nhuận, không phải sản phẩm chính thức do NAPAS hoặc vietqr.io phát hành.
+- **Trách nhiệm giao dịch:** Thư viện được cung cấp theo nguyên tắc "nguyên trạng" (AS IS) theo giấy phép MIT. Người sử dụng và đơn vị tích hợp chịu hoàn toàn trách nhiệm về tính chính xác của dữ liệu thanh toán (Số tài khoản, Mã ngân hàng, Số tiền) trước khi xuất mã QR. Tác giả không chịu trách nhiệm đối với bất kỳ sự cố chuyển nhầm, tổn thất tài chính hay gián đoạn nào phát sinh từ việc ứng dụng thư viện trong thực tế. Chi tiết xem tại **[DISCLAIMER.md](DISCLAIMER.md)**.
+
+---
+
 ## 📄 Giấy Phép (License)
 
 Dự án được phân phối dưới giấy phép mã nguồn mở **[MIT License](LICENSE)**.  
