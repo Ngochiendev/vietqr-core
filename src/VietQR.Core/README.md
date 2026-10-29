@@ -53,11 +53,8 @@ Console.WriteLine(payload);
 
 Omit `amount` to emit a static QR (`Point of Initiation Method = 11`).
 Use `serviceType: VietQrServiceType.Card` for QRIBFTTC (transfer to card).
-Rendered card-payload sample: [Resources/examples/vietqr-card.png](Resources/examples/vietqr-card.png).
 
-<p align="center">
-  <img src="Resources/examples/vietqr-card.png" alt="QRIBFTTC card sample" width="260" />
-</p>
+![QRIBFTTC card sample](https://cdn.jsdelivr.net/gh/Ngochiendev/vietqr-core@main/src/VietQR.Core/Resources/examples/vietqr-card.png)
 
 The library automatically strips Vietnamese diacritics and rejects control
 characters, so `description` input is safe to pass as-is.
@@ -140,9 +137,9 @@ Canvas sizes, straight from the rendering code (`QrImageService.cs`):
 | `qr_only` | 500 × 500 (configurable via `QrRenderOptions.Size`)                | Minimal square QR with the VietQR logo in the center    |
 | `print`   | 600 × dynamic (590 px + 28 px per info line + 16 px bottom margin) | Receipt-style card with amount, transfer note, account  |
 
-| `qr_only`                                        | `compact`                                         | `print`                                       |
-| ------------------------------------------------ | ------------------------------------------------- | --------------------------------------------- |
-| ![qr_only](Resources/examples/vietqr-qronly.png) | ![compact](Resources/examples/vietqr-compact.png) | ![print](Resources/examples/vietqr-print.png) |
+|                                                         `qr_only`                                                         |                                                         `compact`                                                          |                                                        `print`                                                         |
+| :-----------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------------------: |
+| ![qr_only](https://cdn.jsdelivr.net/gh/Ngochiendev/vietqr-core@main/src/VietQR.Core/Resources/examples/vietqr-qronly.png) | ![compact](https://cdn.jsdelivr.net/gh/Ngochiendev/vietqr-core@main/src/VietQR.Core/Resources/examples/vietqr-compact.png) | ![print](https://cdn.jsdelivr.net/gh/Ngochiendev/vietqr-core@main/src/VietQR.Core/Resources/examples/vietqr-print.png) |
 
 ### 4. Parse a payload and decode images
 
@@ -221,15 +218,9 @@ var branded = new QrRenderOptions
 ```
 
 The QR module matrix stays black-on-white (`#000000` / `#FFFFFF`), so branded
-cards remain scannable by banking apps. Rendered examples shipped in the
-package:
-[Resources/examples/vietqr-card.png](Resources/examples/vietqr-card.png)
-(QRIBFTTC card) and
-[Resources/examples/vietqr-custom-logo.png](Resources/examples/vietqr-custom-logo.png).
+cards remain scannable by banking apps.
 
-<p align="center">
-  <img src="Resources/examples/vietqr-custom-logo.png" alt="Custom center logo sample" width="260" />
-</p>
+![Custom center logo sample](https://cdn.jsdelivr.net/gh/Ngochiendev/vietqr-core@main/src/VietQR.Core/Resources/examples/vietqr-custom-logo.png)
 
 ### Utilities
 
