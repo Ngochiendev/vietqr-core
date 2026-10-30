@@ -1,269 +1,223 @@
 # VietQR.Core
 
-[![NuGet](https://img.shields.io/nuget/v/VietQR.Core?style=flat-square)](https://www.nuget.org/packages/VietQR.Core)
-[![NuGet Downloads](https://img.shields.io/nuget/dt/VietQR.Core?style=flat-square)](https://www.nuget.org/packages/VietQR.Core)
-[![.NET](https://img.shields.io/badge/.NET-net6.0%20%7C%20net8.0%20%7C%20net9.0%20%7C%20net10.0-512BD4?style=flat-square)](https://github.com/Ngochiendev/vietqr-core#supported-runtimes)
-[![License](https://img.shields.io/badge/license-MIT-green?style=flat-square)](https://github.com/Ngochiendev/vietqr-core/blob/main/LICENSE)
+[![NuGet](https://img.shields.io/nuget/v/VietQR.Core?style=flat-square&color=004880)](https://www.nuget.org/packages/VietQR.Core)
+[![NuGet Downloads](https://img.shields.io/nuget/dt/VietQR.Core?style=flat-square&color=0078D4)](https://www.nuget.org/packages/VietQR.Core)
+[![.NET](https://img.shields.io/badge/.NET-6.0%20%7C%208.0%20%7C%209.0%20%7C%2010.0-512BD4?style=flat-square)](https://github.com/Ngochiendev/vietqr-core)
+[![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](https://github.com/Ngochiendev/vietqr-core/blob/main/LICENSE)
 
-**VietQR.Core** generates and renders payment QR codes for Vietnam according to the **NAPAS247 / EMVCo** standard.
+Thư viện .NET mã nguồn mở **VietQR.Core** tạo và hiển thị mã QR thanh toán cho Việt Nam theo tiêu chuẩn NAPAS247 / EMVCo.
 
-Given a bank BIN and an account number, the library produces a checksummed EMVCo payload (QRIBFTTA to account / QRIBFTTC to card), plus a rendered PNG card in three templates — using SkiaSharp, entirely offline. The full bank catalog (76+ banks) and all bank logos ship **embedded in the package**, so it works out of the box with no configuration or network access.
+---
 
-## Getting started
+## ⚡ Cài đặt (Installation)
 
-### Prerequisites
-
-- Any .NET runtime listed in the **Supported runtimes** section below.
-- No other setup required — assets, logo files and the bank catalog are embedded in the package.
-
-### Install
-
-```sh
+```bash
 dotnet add package VietQR.Core
 ```
 
-> Pin to a specific release when needed:
-> `dotnet add package VietQR.Core --version <x.y.z>`
+---
 
-`dotnet add` resolves the latest stable version and writes the exact
-`PackageReference` (with version) into your `.csproj`. Prefer this over a
-copy-pasted `PackageReference` element: a version-less reference is allowed
-only under Central Package Management (`Directory.Packages.props`) — otherwise
-NuGet treats it as a floating `*` and emits an `NU1604` warning.
+## 🚀 Bắt đầu nhanh (Quick Start - 30 giây)
 
-## Usage
+### 1. Tạo chuỗi mã QR thanh toán (EMVCo)
 
-### 1. Generate the EMV payload string
-
-No dependency injection required:
+Chỉ 1 dòng lệnh, không cần cấu hình phức tạp:
 
 ```csharp
 using VietQR.Core;
 
-// Dynamic QR (QRIBFTTA — transfer to account)
-string payload = VietQrPayload.Create(
-    BankBin.Create("970422"),        // MB Bank BIN, exactly 6 digits
+// Tạo mã thanh toán động (chuyển khoản tới số tài khoản MBBank)
+string qrContent = VietQrPayload.Create(
+    bin: "970422",                  // Mã BIN ngân hàng (MBBank: 970422)
+    accountNo: "056789799999",       // Số tài khoản người nhận
+    amount: 50000,                   // Số tiền VNĐ (> 0 cho QR động, null cho QR tĩnh)
+    description: "Ung ho quy"        // Nội dung chuyển khoản (tự bỏ dấu tiếng Việt)
+);
+
+Console.WriteLine(qrContent);
+// Output: 00020101021238570010A000000727012700069704220112056789799999...63048E1D
+```
+
+---
+
+### 2. Xuất ảnh thẻ thanh toán hiển thị lên UI hoặc lưu file
+
+```csharp
+using VietQR.Core;
+
+var imageService = new QrImageService();
+
+// Xuất Data URL Base64 (gắn trực tiếp vào thẻ <img src="..."> trên Web hoặc PictureBox WinForms)
+string dataUrl = await imageService.GenerateVietQrBase64Async(
+    emvQrContent: qrContent,
+    bankBin: "970422",
     accountNo: "056789799999",
-    amount: 50000,
-    description: "hoc phi");
+    amount: "50000",
+    description: "Ung ho quy",
+    template: "compact"             // compact (mặc định) | print | qr_only
+);
 
-// 00020101021238520010A000000727...
-Console.WriteLine(payload);
-```
-
-Omit `amount` to emit a static QR (`Point of Initiation Method = 11`).
-Use `serviceType: VietQrServiceType.Card` for QRIBFTTC (transfer to card).
-
-![QRIBFTTC card sample](https://cdn.jsdelivr.net/gh/Ngochiendev/vietqr-core@main/src/VietQR.Core/Resources/examples/vietqr-card.png)
-
-The library automatically strips Vietnamese diacritics and rejects control
-characters, so `description` input is safe to pass as-is.
-
-### 2. Look up a bank
-
-The catalog is embedded — zero config, works offline:
-
-```csharp
-using VietQR.Core;
-
-var catalog = EmbeddedBankCatalog.Instance;
-BankInfo? bank = await catalog.FindAsync("970422");
-
-// bank.Bin == "970422", bank.Code == "MB", bank.ShortName == "MBBank"
-```
-
-`FindAsync` accepts a BIN, a short code (`"MB"`) or a short name (`"MBBank"`),
-and is case-insensitive.
-See `IBankCatalog` for the full surface, including `GetAllAsync()`.
-
-### 3. Render the card image
-
-Register the library in DI, then request `IQrImageRenderer`. In an ASP.NET Core
-app the container is provided by the host; the snippet below builds it manually
-so it compiles as-is in any project:
-
-```csharp
-using VietQR.Core;
-using Microsoft.Extensions.DependencyInjection;
-
-var services = new ServiceCollection();
-services.AddVietQrCore();          // anywhere during app startup
-
-using var provider = services.BuildServiceProvider();
-var generator = provider.GetRequiredService<IQrGenerator>();
-var renderer  = provider.GetRequiredService<IQrImageRenderer>();
-
-string payload = generator.Generate(new VietQrRequest(
-    Bin: BankBin.Create("970422"),
-    AccountNo: "056789799999",
-    Amount: 50000,
-    Description: "hoc phi"));
-
+// Hoặc lưu thẳng ra file ảnh PNG / WebP trên ổ cứng
 var options = new QrRenderOptions
 {
-    Template = "print",              // "compact" (default) | "qr_only" | "print"
+    Template = "compact",
     BankBin = "970422",
     AccountNo = "056789799999",
-    AccountName = "NGUYEN VAN A",
     Amount = 50000,
-    Description = "hoc phi",
-    Size = 500                       // only used by the "qr_only" template
+    Description = "Ung ho quy"
 };
-
-byte[] png = await renderer.RenderPngAsync(payload, options);   // ct defaults to CancellationToken.None
-string dataUrl = $"data:image/png;base64,{Convert.ToBase64String(png)}";
+byte[] pngBytes = await imageService.RenderBytesAsync(qrContent, options);
+await File.WriteAllBytesAsync("vietqr.png", pngBytes);
 ```
 
-`RenderPngAsync` returns PNG `byte[]` — embed directly in HTML
-(`data:image/png;base64,...`), write to disk, or return from your own REST API.
+---
 
-`AddVietQrCore()` accepts an optional `VietQrOptions` record:
+## 🖼️ Mẫu Thẻ Thanh Toán Hỗ Trợ (Visual Showcase)
+
+|                                                Mẫu 1: `compact` (Mặc định)                                                 |                                        Mẫu 2: `print` (Quầy thu ngân / A4 / A5)                                        |                                       Mẫu 3: `card` (Chuyển tiền qua Thẻ ATM)                                        |
+| :------------------------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------: |
+| ![compact](https://cdn.jsdelivr.net/gh/Ngochiendev/vietqr-core@main/src/VietQR.Core/Resources/examples/vietqr-compact.png) | ![print](https://cdn.jsdelivr.net/gh/Ngochiendev/vietqr-core@main/src/VietQR.Core/Resources/examples/vietqr-print.png) | ![card](https://cdn.jsdelivr.net/gh/Ngochiendev/vietqr-core@main/src/VietQR.Core/Resources/examples/vietqr-card.png) |
+|                                  Header VietQR, logo Napas247 & logo ngân hàng nhúng sẵn                                   |                                  In to rõ số tiền, tên chủ TK, nội dung chuyển khoản                                   |                                      Chuyển nhanh qua số thẻ Napas (`QRIBFTTC`)                                      |
+
+|                                            Mẫu 4: `custom_logo` (Logo thương hiệu tâm)                                             |                                          Mẫu 5: `qr_only` (Mã QR vuông tối giản)                                          |
+| :--------------------------------------------------------------------------------------------------------------------------------: | :-----------------------------------------------------------------------------------------------------------------------: |
+| ![custom-logo](https://cdn.jsdelivr.net/gh/Ngochiendev/vietqr-core@main/src/VietQR.Core/Resources/examples/vietqr-custom-logo.png) | ![qr-only](https://cdn.jsdelivr.net/gh/Ngochiendev/vietqr-core@main/src/VietQR.Core/Resources/examples/vietqr-qronly.png) |
+|                                      Chèn logo doanh nghiệp ở tâm, giữ mã QR chuẩn đen trắng                                       |                                   Vuông tối giản (`Size = 500`), có icon VietQR ở giữa                                    |
+
+---
+
+## 📋 Bảng Tra Cứu Tham Số Chi Tiết (Parameter Reference)
+
+### 1. Tham số tạo mã thanh toán: `VietQrPayload.Create()`
+
+| Tên tham số   | Kiểu dữ liệu         |   Bắt buộc   | Mô tả & Ví dụ                                                                                        |
+| :------------ | :------------------- | :----------: | :--------------------------------------------------------------------------------------------------- |
+| `bin`         | `BankBin` / `string` | **Bắt buộc** | Mã BIN ngân hàng đúng 6 chữ số (VD: `"970422"` - MBBank, `"970436"` - VCB, `"970415"` - VietinBank). |
+| `accountNo`   | `string`             | **Bắt buộc** | Số tài khoản, số thẻ hoặc mã tài khoản định danh/ảo (Tối đa 25 ký tự).                               |
+| `amount`      | `long?`              |   Tùy chọn   | Số tiền thanh toán VNĐ ($> 0$). Bỏ trống (`null`) để tạo **QR tĩnh** (người quét tự gõ số tiền).     |
+| `description` | `string?`            |   Tùy chọn   | Nội dung thanh toán (Tối đa 95 ký tự EMVCo Tag 62.08, tự động loại bỏ dấu tiếng Việt).               |
+| `serviceType` | `VietQrServiceType`  |   Tùy chọn   | Loại hình chuyển khoản: `Account` (mặc định - QRIBFTTA) hoặc `Card` (QRIBFTTC chuyển qua thẻ).       |
+
+---
+
+### 2. Tùy chọn render ảnh thẻ: `QrRenderOptions` class
+
+| Tên thuộc tính     | Kiểu dữ liệu    | Mặc định    | Mô tả chi tiết                                                                                |
+| :----------------- | :-------------- | :---------- | :-------------------------------------------------------------------------------------------- |
+| `Template`         | `string`        | `"compact"` | Mẫu thiết kế ảnh thẻ: `"compact"` (thẻ chuẩn), `"print"` (mẫu in quầy), `"qr_only"` (chỉ QR). |
+| `Format`           | `QrImageFormat` | `Png`       | Định dạng file ảnh xuất ra: `QrImageFormat.Png`, `Webp` hoặc `Svg`.                           |
+| `Size`             | `int`           | `500`       | Kích thước cạnh vuông tính bằng pixel (chỉ áp dụng cho template `"qr_only"`).                 |
+| `Quality`          | `int`           | `100`       | Chất lượng nén ảnh (từ 1 đến 100, đặc biệt hữu ích khi xuất file WebP).                       |
+| `AccountName`      | `string?`       | `null`      | Tên chủ tài khoản người nhận (hiển thị nổi bật trên mẫu in ấn `"print"`).                     |
+| `CustomCenterLogo` | `byte[]?`       | `null`      | Mảng byte ảnh logo riêng đặt ở tâm QR (thay thế cho logo VietQR mặc định).                    |
+| `CenterLogoRatio`  | `float`         | `0.18f`     | Tỷ lệ kích thước logo ở tâm so với mã QR (từ 0.05 đến 0.35, đảm bảo mắt đọc quét tốt).        |
+| `BillNumber`       | `string?`       | `null`      | Số hóa đơn / mã đơn hàng (trích xuất đưa vào Tag 62.01).                                      |
+
+---
+
+### 3. Dữ liệu nhận được khi giải mã: `VietQrInfo` class
+
+_(Kết quả trả về từ `VietQrDecoder.Decode` quét ảnh hoặc `VietQrParser.Parse` bóc tách chuỗi)_
+
+| Tên thuộc tính | Kiểu dữ liệu        | Ý nghĩa nghiệp vụ                                                                          |
+| :------------- | :------------------ | :----------------------------------------------------------------------------------------- |
+| `BankBin`      | `string`            | Mã BIN 6 số của ngân hàng thụ hưởng (VD: `"970422"`).                                      |
+| `BankInfo`     | `BankInfo?`         | Thông tin ngân hàng: tên đầy đủ (`Name`), tên viết tắt (`ShortName`), logo nhúng (`Logo`). |
+| `AccountNo`    | `string`            | Số tài khoản hoặc số thẻ của người nhận tiền.                                              |
+| `Amount`       | `decimal?`          | Số tiền giao dịch thanh toán (null nếu là mã QR tĩnh).                                     |
+| `Description`  | `string?`           | Nội dung chuyển khoản trích xuất từ Tag 62.08.                                             |
+| `BillNumber`   | `string?`           | Số hóa đơn / mã đơn hàng trích xuất từ Tag 62.01.                                          |
+| `ServiceType`  | `VietQrServiceType` | `Account` (chuyển tới STK) hoặc `Card` (chuyển tới số thẻ Napas).                          |
+| `QrType`       | `VietQrType`        | `Static` (QR tĩnh quét tự nhập tiền) hoặc `Dynamic` (QR động có sẵn tiền).                 |
+| `IsValidCrc`   | `bool`              | `true` nếu mã băm kiểm tra CRC16 (Tag 63) hợp lệ 100% theo chuẩn EMVCo.                    |
+
+---
+
+## 💡 Các Kịch Bản Sử Dụng Thường Gặp (Common Use Cases)
+
+### 1. Tạo QR tĩnh vs QR động
 
 ```csharp
-services.AddVietQrCore(options =>
+// QR Tĩnh (Static): Dán tại quầy thu ngân / xe bán hàng, khách tự nhập số tiền
+string staticQr = VietQrPayload.Create("970422", "056789799999", description: "Cua hang A");
+
+// QR Động (Dynamic): Gắn sẵn số tiền cho từng đơn hàng cụ thể
+string dynamicQr = VietQrPayload.Create("970422", "056789799999", amount: 150000, description: "DH1024");
+```
+
+### 2. Chuyển tiền tới Số Thẻ ATM Napas (thay vì STK)
+
+```csharp
+string cardQr = VietQrPayload.Create(
+    bin: "970422",
+    accountNo: "9704222028493997",   // Số in dập nổi trên thẻ vật lý
+    amount: 100000,
+    serviceType: VietQrServiceType.Card // Chuyển sang chuẩn QRIBFTTC
+);
+```
+
+### 3. Tra cứu danh mục 76+ ngân hàng (Chạy Offline 100%)
+
+```csharp
+var catalog = EmbeddedBankCatalog.Instance;
+
+// Tra cứu bằng mã BIN, mã Code hoặc tên viết tắt (không phân biệt hoa thường)
+BankInfo? bank = await catalog.FindAsync("970422");
+// bank.ShortName == "MBBank", bank.Code == "MB", bank.Name == "Ngân hàng TMCP Quân Đội"
+
+// Lấy danh sách toàn bộ 76+ ngân hàng
+IReadOnlyList<BankInfo> allBanks = await catalog.GetAllAsync();
+```
+
+### 4. Quét và giải mã ảnh VietQR (`VietQrDecoder`)
+
+Hỗ trợ đọc từ ảnh chụp màn hình, ảnh upload từ khách hàng (hỗ trợ cả ảnh VietQR ngân hàng và ShopeePay):
+
+```csharp
+byte[] imageBytes = await File.ReadAllBytesAsync("qr_screenshot.png");
+
+Result<VietQrInfo> result = VietQrDecoder.Decode(imageBytes);
+if (result.IsSuccess)
 {
-    options.DefaultTemplate = "compact";  // template used when QrRenderOptions.Template is not set
-    options.DataPath = "/data/vietqr";    // optional data directory for Docker/K8s mounts
+    VietQrInfo info = result.Value!;
+    Console.WriteLine($"Ngân hàng: {info.BankInfo?.ShortName} - STK: {info.AccountNo}");
+    Console.WriteLine($"Số tiền: {info.Amount:N0} VNĐ - Nội dung: {info.Description}");
+}
+```
+
+### 5. Đăng ký Dependency Injection trong ASP.NET Core
+
+```csharp
+// Trong Program.cs
+builder.Services.AddVietQrCore();
+
+// Inject vào Controller hoặc Minimal API
+app.MapGet("/api/qr", async (IQrGenerator generator, IQrImageRenderer renderer) =>
+{
+    var request = new VietQrRequest(BankBin.Create("970422"), "056789799999", 50000, "Thanh toan");
+    string payload = generator.Generate(request);
+    byte[] image = await renderer.RenderPngAsync(payload, new QrRenderOptions { Template = "compact" });
+    return Results.File(image, "image/png");
 });
 ```
 
-### Available templates
+---
 
-Canvas sizes, straight from the rendering code (`QrImageService.cs`):
+## 🌟 Ưu Điểm của VietQR.Core
 
-| Template  | Canvas size                                                        | Recommended for                                         |
-| --------- | ------------------------------------------------------------------ | ------------------------------------------------------- |
-| `compact` | 540 × 540                                                          | Default card: VietQR header + QR + Napas247 + bank logo |
-| `qr_only` | 500 × 500 (configurable via `QrRenderOptions.Size`)                | Minimal square QR with the VietQR logo in the center    |
-| `print`   | 600 × dynamic (590 px + 28 px per info line + 16 px bottom margin) | Receipt-style card with amount, transfer note, account  |
+- 🚀 **Hiệu năng cao:** Tính toán chuỗi EMVCo và bảng băm CRC16 chỉ mất ~0.4 micro-giây ($\mu$s), tối ưu hóa `ReadOnlySpan<char>` không cấp phát rác bộ nhớ.
+- 📦 **Hỗ trợ toàn diện .NET:** Tương thích `.NET 6.0`, `.NET 8.0` (LTS), `.NET 9.0` và `.NET 10.0`.
 
-|                                                         `qr_only`                                                         |                                                         `compact`                                                          |                                                        `print`                                                         |
-| :-----------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------------------: |
-| ![qr_only](https://cdn.jsdelivr.net/gh/Ngochiendev/vietqr-core@main/src/VietQR.Core/Resources/examples/vietqr-qronly.png) | ![compact](https://cdn.jsdelivr.net/gh/Ngochiendev/vietqr-core@main/src/VietQR.Core/Resources/examples/vietqr-compact.png) | ![print](https://cdn.jsdelivr.net/gh/Ngochiendev/vietqr-core@main/src/VietQR.Core/Resources/examples/vietqr-print.png) |
+---
 
-### 4. Parse a payload and decode images
+## 🙏 Lời Cảm Ơn (Acknowledgments)
 
-Two entry points, both returning `Result<T>` instead of throwing:
+- **[NAPAS](https://napas.com.vn)** & **[Sáng kiến VietQR](https://vietqr.net)** vì quy chuẩn kỹ thuật thanh toán số thông minh.
+- **[VietQR.io](https://vietqr.io)** vì dữ liệu danh mục ngân hàng tham khảo và hệ thống CDN logo ngân hàng tiện ích cho cộng đồng.
 
-```csharp
-using VietQR.Core;
+---
 
-// (a) Parse a payload string (CRC16 validated, strict TLV)
-Result<VietQrInfo> parsed = VietQrParser.Parse(payload);
-if (parsed.IsSuccess)
-{
-    VietQrInfo info = parsed.Value!;
-    // info.BankInfo, info.AccountNo, info.Amount, info.ServiceType,
-    // info.Description, info.BillNumber, info.ReferenceLabel, info.IsValidCrc
-}
+## 📄 Bản Quyền & Giấy Phép
 
-// (b) Decode from an uploaded image (PNG / WebP / JPEG / BMP)
-byte[] imageBytes = await File.ReadAllBytesAsync("customer_uploaded.png");
-Result<VietQrInfo> decoded = VietQrDecoder.Decode(imageBytes);
-```
-
-On failure `result.Error` carries a stable code from `VietQrErrors`
-(`qr.missing_param`, `qr.invalid_amount`, `qr.invalid_bin`, `qr.bank_not_found`,
-`qr.invalid_payload`, `qr.invalid_crc`, `qr.not_vietqr`,
-`qr.image_decode_failed`, ...).
-
-`VietQrParseOptions` tunes the parser defaults:
-
-| Property           | Default | Description                                                                  |
-| ------------------ | ------- | ---------------------------------------------------------------------------- |
-| `StrictCrc`        | `true`  | Reject payloads whose CRC tag does not match the content.                    |
-| `MaxPayloadLength` | `1024`  | Cap on payload length before parsing (untrusted input from camera/webhooks). |
-| `BankCatalog`      | `null`  | Custom `IBankCatalog`; defaults to the embedded catalog.                     |
-
-`VietQrDecoder.Decode` also accepts `Stream?` and `SKBitmap?` overloads, plus
-`DecodeAsync(...)` — see the public surface of `VietQrDecoder`.
-
-### 5. Output formats and streams
-
-`QrRenderOptions.Format` selects the output image format — `Png` (default),
-`Webp` or `Svg`:
-
-```csharp
-// WebP — roughly 30-40% smaller than PNG at the same quality
-var webpOptions = new QrRenderOptions { Template = "compact", Format = QrImageFormat.Webp, Quality = 80 };
-byte[] webp = await renderer.RenderAsync(payload, webpOptions);   // honors options.Format
-await File.WriteAllBytesAsync("vietqr.webp", webp);
-
-// SVG — pure C# string, no native dependency
-string svgXml = VietQrSvgRenderer.Render(payload, size: 500);
-
-// Streams — write straight into a response/file stream, no byte[] buffer
-await renderer.RenderToStreamAsync(payload, httpContext.Response.Body,
-    new QrRenderOptions { Template = "compact", Format = QrImageFormat.Webp });
-```
-
-`QrImageService` mirrors the same surface when used directly
-(`RenderBytesAsync`, `RenderWebpBytesAsync`, `SaveWebpAsync`, `RenderSvgAsync`,
-`SaveAsync`).
-
-### 6. Custom center logo
-
-`QrRenderOptions` accepts a custom brand logo embedded in the center of the QR
-— as bytes or as a Base64 data URL:
-
-```csharp
-var branded = new QrRenderOptions
-{
-    Template = "qr_only",
-    Size = 500,
-    CustomCenterLogo = File.ReadAllBytes("my_brand_logo.png"),
-    // CustomCenterLogoBase64 = "data:image/png;base64,...",
-    CenterLogoRatio = 0.20f          // logo width vs QR width (safe range 0.10-0.28)
-};
-```
-
-The QR module matrix stays black-on-white (`#000000` / `#FFFFFF`), so branded
-cards remain scannable by banking apps.
-
-![Custom center logo sample](https://cdn.jsdelivr.net/gh/Ngochiendev/vietqr-core@main/src/VietQR.Core/Resources/examples/vietqr-custom-logo.png)
-
-### Utilities
-
-The `VietQr` class also exposes useful static helpers (used by our own test suite):
-
-- `VietQr.GenCRCCode(string content)` — compute the CRC16-CCITT (Tag 63) for the
-  payload **without** the 4-character CRC suffix.
-- `VietQr.VerifyCRC(string content)` — validate a complete payload end-to-end;
-  the string must already end with the `6304XXXX` CRC tag.
-- `VietQr.ExtractBinFromEmvCo(string content)` — pull the BIN out of any
-  compliant payload.
-
-## Supported runtimes
-
-| TFM     | Support  |
-| ------- | -------- |
-| net6.0  | ✅       |
-| net8.0  | ✅ (LTS) |
-| net9.0  | ✅       |
-| net10.0 | ✅ (LTS) |
-
-Native SkiaSharp binaries are packaged for Windows, Linux and macOS, so
-`dotnet publish` works for all major targets without extra steps.
-
-## Feedback
-
-Bugs, feature requests and questions go to the
-[GitHub issue tracker](https://github.com/Ngochiendev/vietqr-core/issues).
-Release notes for every version are published on the
-[GitHub Releases](https://github.com/Ngochiendev/vietqr-core/releases) page,
-and on nuget.org under each package version.
-
-## Contributing
-
-See [CONTRIBUTING.md](https://github.com/Ngochiendev/vietqr-core/blob/main/CONTRIBUTING.md).
-Please include the NAPAS247 reference payload you expect, along with your test,
-for anything affecting generated output.
-
-## Disclaimer & Trademark
-
-VietQR® and NAPAS247® are registered trademarks of NAPAS (National Payment Corporation of Vietnam) and related entities. This project is an independent, non-profit open-source library and is not an official product of NAPAS or vietqr.io. Always verify the recipient account details before executing transactions. See [DISCLAIMER.md](https://github.com/Ngochiendev/vietqr-core/blob/main/DISCLAIMER.md).
-
-## License
-
-Copyright © 2026 Ngochiendev.
-This project is [MIT-licensed](https://github.com/Ngochiendev/vietqr-core/blob/main/LICENSE).
+- Phát hành theo giấy phép mã nguồn mở **[MIT License](https://github.com/Ngochiendev/vietqr-core/blob/main/LICENSE)** — Hoàn toàn miễn phí cho cả dự án cá nhân và thương mại.
+- _VietQR® và NAPAS247® là nhãn hiệu thuộc sở hữu của NAPAS. Dự án này là thư viện mã nguồn mở độc lập._

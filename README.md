@@ -105,7 +105,48 @@ dotnet add package VietQR.Core
 
 ---
 
-## 💡 Hướng Dẫn Code Mẫu Cốt Lõi
+## 📋 Bảng Tra Cứu Tham Số Chi Tiết (Parameter Reference)
+
+### 1. Tham số tạo chuỗi mã QR: `VietQrPayload.Create()`
+
+| Tên tham số   | Kiểu dữ liệu         |   Bắt buộc   | Mô tả & Ví dụ                                                                                        |
+| :------------ | :------------------- | :----------: | :--------------------------------------------------------------------------------------------------- |
+| `bin`         | `BankBin` / `string` | **Bắt buộc** | Mã BIN ngân hàng đúng 6 chữ số (VD: `"970422"` - MBBank, `"970436"` - VCB, `"970415"` - VietinBank). |
+| `accountNo`   | `string`             | **Bắt buộc** | Số tài khoản, số thẻ hoặc mã tài khoản định danh/ảo (Tối đa 25 ký tự).                               |
+| `amount`      | `long?`              |   Tùy chọn   | Số tiền thanh toán VNĐ (> 0). Bỏ trống (`null`) để tạo **QR tĩnh** (người quét tự gõ số tiền).       |
+| `description` | `string?`            |   Tùy chọn   | Nội dung thanh toán (Tối đa 95 ký tự EMVCo Tag 62.08, tự động loại bỏ dấu tiếng Việt).               |
+| `serviceType` | `VietQrServiceType`  |   Tùy chọn   | Loại hình chuyển khoản: `Account` (mặc định - QRIBFTTA) hoặc `Card` (QRIBFTTC chuyển qua thẻ).       |
+
+### 2. Tùy chọn render ảnh thẻ: `QrRenderOptions` class
+
+| Tên thuộc tính     | Kiểu dữ liệu    | Mặc định    | Mô tả chi tiết                                                                                |
+| :----------------- | :-------------- | :---------- | :-------------------------------------------------------------------------------------------- |
+| `Template`         | `string`        | `"compact"` | Mẫu thiết kế ảnh thẻ: `"compact"` (thẻ chuẩn), `"print"` (mẫu in quầy), `"qr_only"` (chỉ QR). |
+| `Format`           | `QrImageFormat` | `Png`       | Định dạng file ảnh xuất ra: `QrImageFormat.Png`, `Webp` hoặc `Svg`.                           |
+| `Size`             | `int`           | `500`       | Kích thước cạnh vuông tính bằng pixel (chỉ áp dụng cho template `"qr_only"`).                 |
+| `Quality`          | `int`           | `100`       | Chất lượng nén ảnh (từ 1 đến 100, đặc biệt hữu ích khi xuất file WebP).                       |
+| `AccountName`      | `string?`       | `null`      | Tên chủ tài khoản người nhận (hiển thị nổi bật trên mẫu in ấn `"print"`).                     |
+| `CustomCenterLogo` | `byte[]?`       | `null`      | Mảng byte ảnh logo riêng đặt ở tâm QR (thay thế cho logo VietQR mặc định).                    |
+| `CenterLogoRatio`  | `float`         | `0.18f`     | Tỷ lệ kích thước logo ở tâm so với mã QR (từ 0.05 đến 0.35, đảm bảo mắt đọc quét tốt).        |
+| `BillNumber`       | `string?`       | `null`      | Số hóa đơn / mã đơn hàng (trích xuất đưa vào Tag 62.01).                                      |
+
+### 3. Dữ liệu nhận được khi giải mã: `VietQrInfo` class
+
+| Tên thuộc tính | Kiểu dữ liệu        | Ý nghĩa nghiệp vụ                                                                          |
+| :------------- | :------------------ | :----------------------------------------------------------------------------------------- |
+| `BankBin`      | `string`            | Mã BIN 6 số của ngân hàng thụ hưởng (VD: `"970422"`).                                      |
+| `BankInfo`     | `BankInfo?`         | Thông tin ngân hàng: tên đầy đủ (`Name`), tên viết tắt (`ShortName`), logo nhúng (`Logo`). |
+| `AccountNo`    | `string`            | Số tài khoản hoặc số thẻ của người nhận tiền.                                              |
+| `Amount`       | `decimal?`          | Số tiền giao dịch thanh toán (null nếu là mã QR tĩnh).                                     |
+| `Description`  | `string?`           | Nội dung chuyển khoản trích xuất từ Tag 62.08.                                             |
+| `BillNumber`   | `string?`           | Số hóa đơn / mã đơn hàng trích xuất từ Tag 62.01.                                          |
+| `ServiceType`  | `VietQrServiceType` | `Account` (chuyển tới STK) hoặc `Card` (chuyển tới số thẻ Napas).                          |
+| `QrType`       | `VietQrType`        | `Static` (QR tĩnh quét tự nhập tiền) hoặc `Dynamic` (QR động có sẵn tiền).                 |
+| `IsValidCrc`   | `bool`              | `true` nếu mã băm kiểm tra CRC16 (Tag 63) hợp lệ 100% theo chuẩn EMVCo.                    |
+
+---
+
+## 💡 Hướng Dẫn Code Mẫu
 
 ### 1. Tạo chuỗi VietQR & Render ảnh thẻ
 
@@ -240,7 +281,10 @@ Vui lòng xem chi tiết quy trình cộng tác, tiêu chuẩn code và quy ư�
 
 ## 🙏 Lời Cảm Ơn (Acknowledgments)
 
-Xin gửi lời cảm ơn chân thành đến **[NAPAS (Công ty Cổ phần Thanh toán Quốc gia Việt Nam)](https://napas.com.vn)** cùng **[Sáng kiến VietQR](https://vietqr.net)** đã xây dựng chuẩn mực thanh toán số thông minh, tiện lợi cho hàng triệu người dân và doanh nghiệp Việt Nam, đồng thời cung cấp **[tài liệu quy chuẩn kỹ thuật](docs/QR_Format_T&C_v1.0_VN_092021.pdf)** làm cơ sở để cộng đồng cùng phát triển.
+Xin gửi lời cảm ơn chân thành đến:
+
+- **[NAPAS (Công ty Cổ phần Thanh toán Quốc gia Việt Nam)](https://napas.com.vn)** cùng **[Sáng kiến VietQR](https://vietqr.net)** đã xây dựng chuẩn mực thanh toán số thông minh, tiện lợi cho hàng triệu người dân và doanh nghiệp Việt Nam, đồng thời cung cấp **[tài liệu quy chuẩn kỹ thuật](docs/QR_Format_T&C_v1.0_VN_092021.pdf)** làm cơ sở để cộng đồng cùng phát triển.
+- **[VietQR.io](https://vietqr.io)** đã cung cấp dữ liệu danh mục ngân hàng tham khảo hữu ích và hệ thống CDN logo ngân hàng hỗ trợ cộng đồng lập trình viên Việt Nam.
 
 ---
 
