@@ -25,6 +25,7 @@ coverage/
 
 tests/
 .agents
+docs/vietqr-core-gap-analysis.md
 
 ## --- Project Generated Test & Benchmark Artifacts ---
 # File HTML tổng hợp ảnh 76 ngân hàng sinh ra trong quá trình chạy test
@@ -68,6 +69,8 @@ _ReSharper*/
 .Spotlight-V100
 .Trashes
 .codegraph
+Library/
+.local/
 
 # Windows
 Thumbs.db
