@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text;
 using QRCoder;
 
@@ -102,7 +103,7 @@ public static class VietQrSvgRenderer
 
                     float x = padding + (col * moduleSize);
                     float y = padding + (row * moduleSize);
-                    pathBuilder.Append($"M{x:F2},{y:F2}h{moduleSize:F2}v{moduleSize:F2}h-{moduleSize:F2}z ");
+                    pathBuilder.Append(string.Format(CultureInfo.InvariantCulture, "M{0:F2},{1:F2}h{2:F2}v{2:F2}h-{2:F2}z ", x, y, moduleSize));
                 }
             }
         }
@@ -121,7 +122,7 @@ public static class VietQrSvgRenderer
             float bgSize = logoBoxSize + (bgPadding * 2);
 
             // Nền trắng bo góc cho logo
-            sb.AppendLine($"  <rect x=\"{bgX:F2}\" y=\"{bgY:F2}\" width=\"{bgSize:F2}\" height=\"{bgSize:F2}\" rx=\"6\" ry=\"6\" fill=\"{lightColor}\" />");
+            sb.AppendLine(string.Format(CultureInfo.InvariantCulture, "  <rect x=\"{0:F2}\" y=\"{1:F2}\" width=\"{2:F2}\" height=\"{2:F2}\" rx=\"6\" ry=\"6\" fill=\"{3}\" />", bgX, bgY, bgSize, lightColor));
 
             // Nhúng ảnh Base64
             var cleanHref = centerLogoBase64!.Trim();
@@ -130,7 +131,7 @@ public static class VietQrSvgRenderer
                 cleanHref = $"data:image/png;base64,{cleanHref}";
             }
 
-            sb.AppendLine($"  <image href=\"{cleanHref}\" x=\"{logoBoxX:F2}\" y=\"{logoBoxY:F2}\" width=\"{logoBoxSize:F2}\" height=\"{logoBoxSize:F2}\" preserveAspectRatio=\"xMidYMid meet\" />");
+            sb.AppendLine(string.Format(CultureInfo.InvariantCulture, "  <image href=\"{0}\" x=\"{1:F2}\" y=\"{2:F2}\" width=\"{3:F2}\" height=\"{3:F2}\" preserveAspectRatio=\"xMidYMid meet\" />", cleanHref, logoBoxX, logoBoxY, logoBoxSize));
         }
 
         sb.AppendLine("</svg>");
