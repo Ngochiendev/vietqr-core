@@ -32,7 +32,7 @@ jobs:
           else
             # Tính version kế tiếp: major.minor từ csproj, patch = tag cuối + 1
             MAJMIN=$(awk -F'[<>]' '/<Version>/{print $3; exit}' src/VietQR.Core/VietQR.Core.csproj | cut -d. -f1-2)
-            LAST=$(git describe --tags --abbrev=0 2>/dev/null | sed 's/^v//' || true)
+            LAST=$(git describe --tags --match "v[0-9]*" --abbrev=0 2>/dev/null | sed 's/^v//' || true)
             if [ -z "$LAST" ]; then
               VERSION="${MAJMIN}.1"
             elif [[ "$LAST" == "${MAJMIN}."* ]]; then
@@ -45,7 +45,7 @@ jobs:
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
 
           # Commit kể từ tag TRƯỚC (giữ prefix 'v' cho git)
-          LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || true)
+          LAST_TAG=$(git describe --tags --match "v[0-9]*" --abbrev=0 2>/dev/null || true)
           if [ -n "$LAST_TAG" ] && git rev-list "$LAST_TAG..HEAD" >/dev/null 2>&1; then
             LOG=$(git log "$LAST_TAG..HEAD" --max-count=30 --pretty=format:'%s%n%h')
           else
