@@ -13,8 +13,8 @@
 
 <p align="center">
   <a href="https://github.com/Ngochiendev/vietqr-core/actions/workflows/ci.yml"><img src="https://github.com/Ngochiendev/vietqr-core/actions/workflows/ci.yml/badge.svg" alt="CI Status" /></a>
-  <a href="https://www.nuget.org/packages/VietQR.Core"><img src="https://img.shields.io/nuget/v/VietQR.Core?style=flat-square&color=004880" alt="NuGet Version" /></a>
-  <a href="https://www.nuget.org/packages/VietQR.Core"><img src="https://img.shields.io/nuget/dt/VietQR.Core?style=flat-square&color=0078D4" alt="NuGet Downloads" /></a>
+  <a href="https://www.nuget.org/packages/VietQR.Core"><img src="https://img.shields.io/nuget/v/VietQR.Core?style=flat-square&label=VietQR.Core&color=004880" alt="VietQR.Core NuGet" /></a>
+  <a href="https://www.nuget.org/packages/VietQR.Deeplink.Client"><img src="https://img.shields.io/nuget/v/VietQR.Deeplink.Client?style=flat-square&label=Deeplink.Client&color=0078D4" alt="VietQR.Deeplink.Client NuGet" /></a>
   <a href="#"><img src="https://img.shields.io/badge/.NET-6.0%20%7C%208.0%20%7C%209.0%20%7C%2010.0-512BD4?style=flat-square" alt=".NET Support" /></a>
   <a href="https://github.com/Ngochiendev/vietqr-core/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="License MIT" /></a>
 </p>

@@ -5,15 +5,17 @@
 [![.NET](https://img.shields.io/badge/.NET-6.0%20%7C%208.0%20%7C%209.0%20%7C%2010.0-512BD4?style=flat-square)](https://github.com/Ngochiendev/vietqr-core)
 [![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)](https://github.com/Ngochiendev/vietqr-core/blob/main/LICENSE)
 
-Thư viện .NET mã nguồn mở **VietQR.Core** tạo và hiển thị mã QR thanh toán cho Việt Nam theo tiêu chuẩn NAPAS247 / EMVCo.
+Thư viện C# (.NET) hỗ trợ tạo chuỗi, đọc mã QR và render ảnh thẻ thanh toán VietQR theo chuẩn NAPAS247 / EMVCo. Thư viện tích hợp sẵn danh mục ngân hàng Việt Nam, nhúng sẵn logo và font chữ trong DLL để sử dụng trực tiếp mà không phụ thuộc API bên ngoài.
 
 ---
 
-## ⚡ Cài đặt (Installation)
+## ⚡ Cài đặt
 
 ```bash
 dotnet add package VietQR.Core
 ```
+
+> 💡 Nếu cần lấy link mở ứng dụng ngân hàng (Mobile Banking), bạn có thể dùng thêm gói [`VietQR.Deeplink.Client`](https://www.nuget.org/packages/VietQR.Deeplink.Client).
 
 ---
 
