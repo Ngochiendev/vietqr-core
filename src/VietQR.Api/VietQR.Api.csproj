@@ -9,7 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\VietQR.Core\VietQR.Core.csproj" />
+    <!-- Luôn lấy phiên bản VietQR.Core mới nhất từ NuGet (1.*) -->
+    <PackageReference Include="VietQR.Core" Version="*" />
+    <ProjectReference Include="..\VietQR.Deeplink.Client\VietQR.Deeplink.Client.csproj" Condition="Exists('..\VietQR.Deeplink.Client\VietQR.Deeplink.Client.csproj')" />
+    <PackageReference Include="VietQR.Deeplink.Client" Version="*" Condition="!Exists('..\VietQR.Deeplink.Client\VietQR.Deeplink.Client.csproj')" />
   </ItemGroup>
 
   <ItemGroup>
@@ -25,4 +28,12 @@
     <None Include="wwwroot\all_banks_gallery.html" />
   </ItemGroup>
 
+
+  <PropertyGroup Condition="Exists('..\VietQR.Deeplink\VietQR.Deeplink.csproj')">
+    <DefineConstants>;HAS_VIETQR_DEEPLINK</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup Condition="Exists('..\VietQR.Deeplink\VietQR.Deeplink.csproj')">
+    <ProjectReference Include="..\VietQR.Deeplink\VietQR.Deeplink.csproj" />
+  </ItemGroup>
 </Project>
