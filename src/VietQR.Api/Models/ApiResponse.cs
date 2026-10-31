@@ -9,7 +9,7 @@ namespace VietQR.Api.Models;
 public class ApiResponse<T>
 {
     /// <summary>
-    /// Mã trạng thái kết quả xử lý (00: Thành công, 01-05: Lỗi tham số, 99: Lỗi hệ thống).
+    /// Mã trạng thái xử lý (00: thành công, 01-07: lỗi nghiệp vụ, 99: lỗi hệ thống).
     /// </summary>
     /// <example>00</example>
     [JsonPropertyName("code")]

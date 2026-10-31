@@ -10,7 +10,6 @@ namespace VietQR.Api.Controllers;
 [ApiController]
 [AllowAnonymous]
 [Route("api/v1/vietqr-core")]
-[Route("api/v1/banks")]
 [Produces("application/json")]
 public class BanksController : ControllerBase
 {
@@ -26,14 +25,25 @@ public class BanksController : ControllerBase
     }
 
     /// <summary>
-    /// Lấy toàn bộ danh sách ngân hàng trong hệ thống.
+    /// Lấy toàn bộ danh mục ngân hàng thành viên NAPAS.
     /// </summary>
     /// <remarks>
-    /// Trả về danh mục 76 ngân hàng (bao gồm mã BIN, Code, ShortName, Tên đầy đủ, Logo nhúng) trực tiếp từ bộ nhớ RAM.
+    /// Trả về 76 ngân hàng nhúng sẵn trong assembly, gồm: `bin`, `code`, `shortName`,
+    /// `name` và `logo` (URL CDN `cdn.vietqr.io`). Response được cache 1 giờ.
     /// </remarks>
     /// <response code="200">Lấy danh mục ngân hàng thành công.</response>
+    /// <example>
+    /// ```json
+    /// {
+    ///   "code": "00",
+    ///   "desc": "Thành công",
+    ///   "data": [
+    ///     { "bin": "970422", "code": "MB", "shortName": "MBBank", "name": "Ngan hang TMCP Quan Doi", "logo": "https://cdn.vietqr.io/img/MB.png" }
+    ///   ]
+    /// }
+    /// ```
+    /// </example>
     [HttpGet("banks")]
-    [HttpGet("")]
     [ResponseCache(Duration = 3600, Location = ResponseCacheLocation.Any)]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetBanks(CancellationToken ct = default)
@@ -43,12 +53,24 @@ public class BanksController : ControllerBase
     }
 
     /// <summary>
-    /// Tra cứu thông tin ngân hàng theo mã BIN hoặc mã Code.
+    /// Tra cứu thông tin ngân hàng theo mã BIN hoặc mã code.
     /// </summary>
-    /// <param name="binOrCode">Mã BIN (VD: 970422) hoặc mã viết tắt (VD: MB, VCB, TCB).</param>
-    /// <response code="200">Tìm thấy thông tin ngân hàng.</response>
-    /// <response code="404">Không tìm thấy ngân hàng tương ứng.</response>
-    [HttpGet("{binOrCode}")]
+    /// <remarks>
+    /// Nhập không phân biệt hoa-thường: `/banks/970422` hoặc `/banks/MB`.
+    /// Dùng để kiểm tra BIN tồn tại trước khi gọi /generate (tránh mã lỗi 04).
+    /// </remarks>
+    /// <param name="binOrCode">Mã BIN gồm 6 chữ số (VD: 970422) hoặc mã code viết tắt (VD: MB, VCB).</param>
+    /// <response code="200">Tìm thấy ngân hàng.</response>
+    /// <response code="404">Không tìm thấy ngân hàng (mã lỗi 04).</response>
+    /// <example>
+    /// ```json
+    /// {
+    ///   "code": "00",
+    ///   "desc": "Thành công",
+    ///   "data": { "bin": "970422", "code": "MB", "shortName": "MBBank", "name": "Ngan hang TMCP Quan Doi", "logo": "https://cdn.vietqr.io/img/MB.png" }
+    /// }
+    /// ```
+    /// </example>
     [HttpGet("banks/{binOrCode}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]

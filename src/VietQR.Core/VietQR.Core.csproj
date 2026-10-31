@@ -10,11 +10,12 @@
     <!-- NuGet Package Metadata -->
     <IsPackable>true</IsPackable>
     <PackageId>VietQR.Core</PackageId>
+    <Title>VietQR.Core - Thư viện tạo và đọc mã VietQR (.NET / C#)</Title>
     <Version>1.0.1</Version>
     <Authors>Hien Dev</Authors>
     <Company>Ngochiendev</Company>
-    <Description>Thư viện .NET tạo, giải mã chuỗi QR thanh toán EMVCo/NAPAS247 và render thẻ VietQR (PNG/WebP/SVG) với danh mục ngân hàng và font nhúng sẵn.</Description>
-    <PackageTags>vietqr;napas247;qrcode;emvco;payment;vietnam;csharp;dotnet</PackageTags>
+    <Description>Thư viện C# (.NET) hỗ trợ tạo chuỗi, đọc mã QR và render ảnh thẻ thanh toán VietQR theo chuẩn NAPAS247 / EMVCo, tích hợp sẵn danh mục ngân hàng Việt Nam.</Description>
+    <PackageTags>vietqr;vietqr-core;napas247;emvco;qrcode;payment;banking;csharp;dotnet;skiasharp</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/Ngochiendev/vietqr-core</RepositoryUrl>
     <RepositoryType>git</RepositoryType>

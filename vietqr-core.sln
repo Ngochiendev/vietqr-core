@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VietQR.Core", "src\VietQR.C
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VietQR.Api", "src\VietQR.Api\VietQR.Api.csproj", "{739F4565-58CA-4E11-A988-47FAADCFEE29}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VietQR.Deeplink.Client", "src\VietQR.Deeplink.Client\VietQR.Deeplink.Client.csproj", "{3BA0F20F-3971-4EDA-87D0-A79A75B173E2}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -26,9 +28,14 @@ Global
 		{739F4565-58CA-4E11-A988-47FAADCFEE29}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{739F4565-58CA-4E11-A988-47FAADCFEE29}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{739F4565-58CA-4E11-A988-47FAADCFEE29}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3BA0F20F-3971-4EDA-87D0-A79A75B173E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3BA0F20F-3971-4EDA-87D0-A79A75B173E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3BA0F20F-3971-4EDA-87D0-A79A75B173E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3BA0F20F-3971-4EDA-87D0-A79A75B173E2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{6AB2CE7E-A525-4F54-A785-7DE04F8F9FEC} = {43724202-ADFF-4E4A-86EA-9A0E70F805D8}
 		{739F4565-58CA-4E11-A988-47FAADCFEE29} = {43724202-ADFF-4E4A-86EA-9A0E70F805D8}
+		{3BA0F20F-3971-4EDA-87D0-A79A75B173E2} = {43724202-ADFF-4E4A-86EA-9A0E70F805D8}
 	EndGlobalSection
 EndGlobal

@@ -1,0 +1,1752 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VietQR.Core — Tài liệu kỹ thuật &amp; Playground NAPAS247</title>
+  <link rel="icon" type="image/png" href="images/vietqr_icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+  <style>
+    :root { color-scheme: light; }
+    body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    code, pre, .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; }
+    
+    /* Clean documentation card styling */
+    .card {
+      background: #ffffff;
+      border: 1px solid #e2e8f0;
+      border-radius: 0.75rem;
+      box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.03), 0 1px 2px -1px rgb(0 0 0 / 0.03);
+    }
+    
+    /* Navigation styling */
+    .tab-btn.active {
+      background: #0f172a;
+      color: #ffffff;
+    }
+    .tab-btn.active svg {
+      color: #94a3b8;
+    }
+    
+    /* Segmented pill control */
+    .seg-btn.active {
+      background: #ffffff;
+      color: #0f172a;
+      font-weight: 600;
+      box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    }
+    
+    /* Code window tabs on dark header */
+    .code-tab.active {
+      background: #1e293b;
+      color: #ffffff;
+      font-weight: 500;
+      border-bottom: 2px solid #38bdf8;
+    }
+    .install-tab.active {
+      background: #1e293b;
+      color: #ffffff;
+      font-weight: 500;
+      border-bottom: 2px solid #38bdf8;
+    }
+    
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: #0f172a;
+      box-shadow: 0 0 0 1px #0f172a;
+    }
+    
+    .template-option { border: 1px solid #e2e8f0; }
+    .template-option:has(input:checked) {
+      border-color: #0f172a;
+      background: #f8fafc;
+    }
+    
+    .fade-in { animation: fadeIn .15s ease-out; }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(2px); }
+      to { opacity: 1; transform: none; }
+    }
+    
+    ::-webkit-scrollbar { height: 6px; width: 6px; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    
+    /* Syntax highlighting tokens for developer docs */
+    .hl-kw { color: #f472b6; font-weight: 500; }        /* Keywords: using, public, var, async, await, return, new, if */
+    .hl-type { color: #38bdf8; }                       /* Types & Interfaces: VietQr, IVietQrDeeplinkClient, Task, IActionResult */
+    .hl-str { color: #4ade80; }                        /* Strings: "MB", "50000" */
+    .hl-comment { color: #94a3b8; font-style: italic; } /* Comments: // comment */
+    .hl-func { color: #fbbf24; }                       /* Functions: AddVietQrDeeplink, ToDeeplinkUrlAsync, SetTransactionAmount */
+    .hl-num { color: #fb923c; }                        /* Numbers */
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased selection:bg-slate-900 selection:text-white">
+
+  <!-- TOP BAR -->
+  <header class="bg-white/95 backdrop-blur-md border-b border-slate-200 sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between gap-4">
+      <a href="./" class="flex items-center gap-3 min-w-0" title="VietQR.Core Documentation">
+        <div class="h-7 flex items-center">
+          <img id="app-logo" src="images/vietqr.png" alt="VietQR" class="h-7 object-contain"
+               onerror="if(!this.dataset.retried){this.dataset.retried='1';this.src='https://cdn.jsdelivr.net/gh/Ngochiendev/vietqr-core@main/src/VietQR.Core/Resources/vietqr.png';}else{this.classList.add('hidden');document.getElementById('logo-fallback')?.classList.remove('hidden');}">
+          <div id="logo-fallback" class="hidden flex items-center font-bold tracking-tight text-lg">
+            <span class="text-rose-600">Viet</span><span class="text-blue-700">QR</span>
+          </div>
+        </div>
+        <div class="hidden sm:flex items-center gap-2 border-l border-slate-200 pl-3">
+          <span class="text-sm font-semibold text-slate-900 tracking-tight">VietQR.Core</span>
+          <span class="text-[11px] font-medium text-slate-500 bg-slate-100 border border-slate-200 rounded px-1.5 py-0.2">NAPAS247</span>
+          <span class="text-[11px] font-mono text-slate-400">v1.0.1</span>
+        </div>
+      </a>
+
+      <nav class="flex items-center gap-2.5 text-xs sm:text-sm">
+        <a href="https://github.com/Ngochiendev/vietqr-core" target="_blank" rel="noopener"
+           class="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white px-3 py-1.5 rounded-lg font-medium transition text-xs shadow-xs">
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.55 0-.27-.01-1.13-.02-2.05-3.2.69-3.87-1.36-3.87-1.36-.52-1.33-1.28-1.68-1.28-1.68-1.04-.71.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.02 1.75 2.68 1.25 3.34.95.1-.74.4-1.25.72-1.54-2.55-.29-5.23-1.28-5.23-5.68 0-1.26.45-2.28 1.19-3.09-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.17 1.18a11 11 0 0 1 5.77 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.83 1.19 3.09 0 4.41-2.69 5.38-5.25 5.66.41.36.78 1.05.78 2.13 0 1.54-.01 2.78-.01 3.16 0 .31.21.67.8.55A11.51 11.51 0 0 0 23.5 12C23.5 5.65 18.35.5 12 .5z"/></svg>
+          <span>GitHub</span>
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- MAIN WORKSPACE -->
+  <main class="max-w-7xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8 flex-1">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+      <!-- NAVIGATION SIDEBAR -->
+      <aside class="lg:col-span-2">
+        <nav class="card p-1.5 flex lg:flex-col gap-1 overflow-x-auto lg:overflow-visible sticky lg:top-20">
+          <button onclick="switchTab('generator')" id="tab-btn-generator"
+                  class="tab-btn active shrink-0 flex items-center gap-2 text-xs sm:text-sm font-medium px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 transition text-left whitespace-nowrap">
+            <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            Tạo mã QR
+          </button>
+          <button onclick="switchTab('deeplink')" id="tab-btn-deeplink"
+                  class="tab-btn shrink-0 flex items-center gap-2 text-xs sm:text-sm font-medium px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 transition text-left whitespace-nowrap">
+            <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            Cổng Deeplink
+          </button>
+          <button onclick="switchTab('decoder')" id="tab-btn-decoder"
+                  class="tab-btn shrink-0 flex items-center gap-2 text-xs sm:text-sm font-medium px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 transition text-left whitespace-nowrap">
+            <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+            Giải mã ảnh
+          </button>
+          <button onclick="switchTab('parser')" id="tab-btn-parser"
+                  class="tab-btn shrink-0 flex items-center gap-2 text-xs sm:text-sm font-medium px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 transition text-left whitespace-nowrap">
+            <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 9l-4 3 4 3m8-6 4 3-4 3m-3-9-2 12"/></svg>
+            Phân tích chuỗi
+          </button>
+          <button onclick="switchTab('apidocs')" id="tab-btn-apidocs"
+                  class="tab-btn shrink-0 flex items-center gap-2 text-xs sm:text-sm font-medium px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-50 transition text-left whitespace-nowrap">
+            <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V2H6.5A2.5 2.5 0 0 0 4 4.5v15zM4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg>
+            API Reference
+          </button>
+        </nav>
+      </aside>
+
+      <!-- CONTENT PANELS -->
+      <section class="lg:col-span-10 w-full min-w-0">
+
+        <!-- ========================================== -->
+        <!-- TAB 1: GENERATOR (TẠO MÃ QR THUẦN TÚY)   -->
+        <!-- ========================================== -->
+        <div id="tab-generator" class="fade-in">
+          <div class="grid grid-cols-1 xl:grid-cols-5 gap-6 items-start">
+
+            <!-- FORM GENERATOR -->
+            <div class="xl:col-span-3 card p-5 sm:p-6">
+              <h1 class="text-base font-semibold text-slate-900 mb-4 pb-3 border-b border-slate-100">
+                Thông tin thanh toán
+              </h1>
+
+              <form id="qr-form" onsubmit="event.preventDefault(); generateQR();" class="space-y-4">
+                <div>
+                  <label for="bank-select" class="block text-xs font-medium text-slate-600 mb-1.5">Ngân hàng thụ hưởng</label>
+                  <select id="bank-select" onchange="generateQR()"
+                          class="w-full border border-slate-300 bg-white rounded-lg px-3 py-2 text-sm transition">
+                    <option value="970422" selected>MBBank — Ngân hàng Quân Đội (970422)</option>
+                    <option value="970423">TPBank — Tiên Phong (970423)</option>
+                    <option value="970436">Vietcombank — Ngoại thương VN (970436)</option>
+                    <option value="970407">Techcombank — Kỹ thương VN (970407)</option>
+                    <option value="970415">VietinBank — Công thương VN (970415)</option>
+                    <option value="970418">BIDV — Đầu tư &amp; Phát triển VN (970418)</option>
+                    <option value="970405">Agribank — Nông nghiệp VN (970405)</option>
+                    <option value="970432">VPBank — VN Thịnh Vượng (970432)</option>
+                  </select>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label for="account-no" class="block text-xs font-medium text-slate-600 mb-1.5">
+                      Số tài khoản / số thẻ <span class="text-rose-500">*</span>
+                    </label>
+                    <input type="text" id="account-no" value="056789799999" maxlength="25" required
+                           placeholder="VD: 056789799999" class="w-full border border-slate-300 bg-white rounded-lg px-3 py-2 text-sm mono transition">
+                  </div>
+                  <div>
+                    <label for="account-name" class="block text-xs font-medium text-slate-600 mb-1.5">
+                      Tên chủ tài khoản <span class="text-slate-400 font-normal">(không dấu, in hoa)</span>
+                    </label>
+                    <input type="text" id="account-name" value="NGUYEN VAN A" maxlength="60"
+                           placeholder="VD: NGUYEN VAN A" class="w-full border border-slate-300 bg-white rounded-lg px-3 py-2 text-sm uppercase transition">
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label for="amount" class="block text-xs font-medium text-slate-600 mb-1.5">
+                      Số tiền (VNĐ) <span class="text-rose-500">*</span>
+                    </label>
+                    <input type="number" id="amount" value="50000" min="1" max="9999999999999" required
+                           placeholder="50000" class="w-full border border-slate-300 bg-white rounded-lg px-3 py-2 text-sm transition">
+                    <span id="amount-formatted" class="text-xs text-slate-500 font-medium mt-1 inline-block">50.000 đ</span>
+                  </div>
+                  <div>
+                    <label for="description" class="block text-xs font-medium text-slate-600 mb-1.5">
+                      Nội dung chuyển khoản <span class="text-rose-500">*</span>
+                    </label>
+                    <input type="text" id="description" value="thanh toan don hang" maxlength="95" required
+                           placeholder="Tối đa 95 ký tự" class="w-full border border-slate-300 bg-white rounded-lg px-3 py-2 text-sm transition">
+                  </div>
+                </div>
+
+                <!-- TEMPLATE SELECTION -->
+                <div>
+                  <span class="block text-xs font-medium text-slate-600 mb-2">Mẫu thẻ hiển thị</span>
+                  <div class="grid grid-cols-3 gap-2.5">
+                    <label class="template-option rounded-lg p-3 text-center cursor-pointer transition flex flex-col items-center">
+                      <input type="radio" name="template" value="compact" checked class="sr-only">
+                      <span class="text-xs font-semibold text-slate-900">compact</span>
+                      <span class="text-[11px] text-slate-500 mt-0.5">Khung thẻ 540px</span>
+                    </label>
+                    <label class="template-option rounded-lg p-3 text-center cursor-pointer transition flex flex-col items-center">
+                      <input type="radio" name="template" value="qr_only" class="sr-only">
+                      <span class="text-xs font-semibold text-slate-900">qr_only</span>
+                      <span class="text-[11px] text-slate-500 mt-0.5">Mã vuông tối giản</span>
+                    </label>
+                    <label class="template-option rounded-lg p-3 text-center cursor-pointer transition flex flex-col items-center">
+                      <input type="radio" name="template" value="print" class="sr-only">
+                      <span class="text-xs font-semibold text-slate-900">print</span>
+                      <span class="text-[11px] text-slate-500 mt-0.5">In hóa đơn đầy đủ</span>
+                    </label>
+                  </div>
+                </div>
+
+                <!-- FORMAT & SERVICE TYPE -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label for="format" class="block text-xs font-medium text-slate-600 mb-1.5">Định dạng hình ảnh</label>
+                    <select id="format" onchange="generateQR()"
+                            class="w-full border border-slate-300 bg-white rounded-lg px-3 py-2 text-sm transition">
+                      <option value="png" selected>PNG (Lossless)</option>
+                      <option value="jpeg">JPEG (Nén)</option>
+                      <option value="webp">WebP (Tối ưu web)</option>
+                      <option value="svg">SVG (Vector)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label for="service-type" class="block text-xs font-medium text-slate-600 mb-1.5">Phương thức chuyển khoản</label>
+                    <select id="service-type" onchange="generateQR()"
+                            class="w-full border border-slate-300 bg-white rounded-lg px-3 py-2 text-sm transition">
+                      <option value="account" selected>Tới số tài khoản (QRIBFTTA)</option>
+                      <option value="card">Tới số thẻ (QRIBFTTC)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- CUSTOM LOGO UPLOAD -->
+                <div>
+                  <span class="block text-xs font-medium text-slate-600 mb-1.5">
+                    Logo riêng ở tâm QR <span class="text-slate-400 font-normal">(tùy chọn)</span>
+                  </span>
+                  <div id="logo-slot" class="flex items-center gap-3 border border-dashed border-slate-300 hover:border-slate-400 bg-slate-50/50 rounded-lg px-3.5 py-2.5 cursor-pointer transition"
+                       onclick="document.getElementById('logo-input').click()">
+                    <img id="logo-preview" src="" alt="" class="hidden w-8 h-8 object-contain shrink-0 bg-white border border-slate-200 rounded p-0.5">
+                    <div class="min-w-0 flex-1">
+                      <p id="logo-filename" class="text-xs text-slate-600 truncate">Chọn file PNG, JPG làm logo trung tâm</p>
+                    </div>
+                    <button type="button" id="logo-remove" class="hidden shrink-0 text-slate-400 hover:text-rose-600 p-1"
+                            onclick="event.stopPropagation(); clearCustomLogo();">
+                      <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m18 6-12 12M6 6l12 12"/></svg>
+                    </button>
+                    <input type="file" id="logo-input" accept="image/png,image/jpeg,image/webp" class="hidden">
+                  </div>
+                </div>
+
+                <div class="pt-1">
+                  <button type="submit" id="btn-generate"
+                          class="w-full bg-slate-900 hover:bg-slate-800 text-white font-medium py-2.5 px-4 rounded-lg transition text-sm">
+                    Tạo mã VietQR
+                  </button>
+                </div>
+              </form>
+            </div>
+
+            <!-- PREVIEW COLUMN -->
+            <div class="xl:col-span-2 space-y-4">
+              <div class="card p-5 text-center">
+                <h2 class="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
+                  Xem trước mã QR
+                </h2>
+
+                <div class="relative inline-block max-w-full bg-slate-50 border border-slate-200 rounded-xl p-3">
+                  <img id="qr-preview-img" src="" alt="Mã thanh toán VietQR"
+                       class="rounded mx-auto max-h-[320px] object-contain bg-white">
+                  <div id="loading-spinner" class="hidden absolute inset-0 bg-white/80 rounded-xl place-items-center">
+                    <svg class="w-7 h-7 text-slate-700 animate-spin" viewBox="0 0 24 24" fill="none"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"/><path class="opacity-75" fill="currentColor" d="M22 12a10 10 0 0 1-10 10c-1.9 0-3.7-.5-5.2-1.5l1.4-1.6A8 8 0 0 0 22 12z"/></svg>
+                  </div>
+                </div>
+
+                <div class="mt-4 grid grid-cols-2 gap-2 text-xs">
+                  <button onclick="downloadImage()" id="btn-download"
+                          class="bg-slate-900 hover:bg-slate-800 text-white font-medium py-2 rounded-lg transition">
+                    Tải ảnh
+                  </button>
+                  <button onclick="copyPayload()" id="btn-copy-payload"
+                          class="border border-slate-300 hover:bg-slate-50 text-slate-700 font-medium py-2 rounded-lg transition">
+                    Sao chép EMV
+                  </button>
+                  <button onclick="copyDataUrl()" id="btn-copy-url"
+                          class="col-span-2 border border-slate-300 hover:bg-slate-50 text-slate-600 font-medium py-2 rounded-lg transition">
+                    Sao chép Base64 (Data URL)
+                  </button>
+                </div>
+              </div>
+
+              <!-- RAW EMVCO STRING -->
+              <div class="card p-4">
+                <div class="flex items-center justify-between mb-2">
+                  <span class="text-xs font-semibold text-slate-600">Chuỗi EMVCo Payload</span>
+                  <span class="text-[10px] font-mono text-slate-400" id="payload-length"></span>
+                </div>
+                <pre id="payload-text" class="mono bg-slate-950 text-slate-200 p-3 rounded-lg text-[11px] leading-relaxed break-all whitespace-pre-wrap max-h-24 overflow-y-auto border border-slate-800">…</pre>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB 2: DEEPLINK (DEMO & TÀI LIỆU TÍCH HỢP) -->
+        <!-- ========================================== -->
+        <div id="tab-deeplink" class="hidden fade-in space-y-6">
+
+          <!-- PAGE HEADER & SUBTABS -->
+          <div class="card p-5 sm:p-6 pb-5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <span class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Developer Guide &amp; Playground</span>
+                <h1 class="text-xl sm:text-2xl font-bold text-slate-900 tracking-tight mt-1">
+                  Điều hướng ứng dụng ngân hàng (Bank Deeplink)
+                </h1>
+                <p class="text-xs sm:text-sm text-slate-600 mt-1 max-w-3xl leading-relaxed">
+                  Tạo liên kết mở trực tiếp ứng dụng ngân hàng di động, tự động điền sẵn số tài khoản, số tiền và nội dung chuyển khoản theo chuẩn VietQR.
+                </p>
+              </div>
+
+              <!-- SEGMENTED SUB-TAB NAVIGATION -->
+              <div class="inline-flex items-center p-1 bg-slate-100 rounded-lg border border-slate-200/80 shrink-0 self-start sm:self-auto">
+                <button type="button" onclick="switchDeeplinkSubTab('docs')" id="subtab-btn-docs"
+                        class="seg-btn active px-3.5 py-1.5 rounded-md text-xs font-medium text-slate-700 transition">
+                  Tài liệu tích hợp
+                </button>
+                <button type="button" onclick="switchDeeplinkSubTab('demo')" id="subtab-btn-demo"
+                        class="seg-btn px-3.5 py-1.5 rounded-md text-xs font-medium text-slate-600 hover:text-slate-900 transition">
+                  Demo thực tế
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- SUB-TAB 1: TÀI LIỆU TÍCH HỢP (DOCS FIRST) -->
+          <div id="deeplink-subtab-docs" class="space-y-6">
+
+            <!-- 1. CAI DAT GOI NUGET (NUGET INSTALLATION) -->
+            <div class="card p-5 sm:p-7">
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wide">1. Cài đặt gói NuGet chính thức</h2>
+                    <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">Official .NET</span>
+                  </div>
+                  <p class="text-xs text-slate-500 mt-1">
+                    Cài đặt 2 gói thư viện chuẩn vào dự án của bạn để xử lý sinh mã VietQR và khởi tạo liên kết Deeplink
+                  </p>
+                </div>
+
+                <!-- INSTALL TABS -->
+                <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-lg text-xs font-medium self-start sm:self-auto border border-slate-200/60">
+                  <button type="button" onclick="switchInstallTab('cli')" id="install-btn-cli" class="install-tab active px-3 py-1 rounded transition text-xs">.NET CLI</button>
+                  <button type="button" onclick="switchInstallTab('pkg')" id="install-btn-pkg" class="install-tab px-3 py-1 rounded text-slate-600 hover:text-slate-900 transition text-xs">PackageReference</button>
+                  <button type="button" onclick="switchInstallTab('pm')" id="install-btn-pm" class="install-tab px-3 py-1 rounded text-slate-600 hover:text-slate-900 transition text-xs">Package Manager</button>
+                </div>
+              </div>
+
+              <!-- PACKAGE BADGES SUMMARY -->
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
+                <div class="flex items-start gap-3 p-3 rounded-lg bg-slate-50 border border-slate-200/80">
+                  <div class="w-8 h-8 rounded bg-slate-900 text-white flex items-center justify-center font-bold text-xs shrink-0 mono">C#</div>
+                  <div class="min-w-0">
+                    <div class="flex items-center gap-1.5">
+                      <span class="text-xs font-bold text-slate-900 mono">VietQR.Core</span>
+                      <span class="text-[10px] font-mono text-slate-500 bg-white border border-slate-200 px-1 rounded">v1.0.1</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Khởi tạo dữ liệu EMVCo, tính CRC16 và render hình ảnh thẻ thanh toán.</p>
+                  </div>
+                </div>
+                <div class="flex items-start gap-3 p-3 rounded-lg bg-slate-50 border border-slate-200/80">
+                  <div class="w-8 h-8 rounded bg-sky-700 text-white flex items-center justify-center font-bold text-xs shrink-0 mono">SDK</div>
+                  <div class="min-w-0">
+                    <div class="flex items-center gap-1.5">
+                      <span class="text-xs font-bold text-slate-900 mono">VietQR.Deeplink.Client</span>
+                      <span class="text-[10px] font-mono text-slate-500 bg-white border border-slate-200 px-1 rounded">v1.0.0</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Client SDK tạo phiên điều hướng trực tiếp vào ứng dụng ngân hàng di động.</p>
+                  </div>
+                </div>
+              </div>
+
+              <!-- INSTALL CODE PANELS -->
+              <div class="relative bg-slate-950 text-slate-200 rounded-lg overflow-hidden border border-slate-800">
+                <div class="flex items-center justify-between px-3.5 py-2 bg-slate-900/90 border-b border-slate-800 text-[11px] text-slate-400 mono">
+                  <div class="flex items-center gap-2">
+                    <span class="w-2.5 h-2.5 rounded-full bg-rose-500/80 inline-block"></span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-amber-500/80 inline-block"></span>
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500/80 inline-block"></span>
+                    <span id="install-tab-label" class="ml-1 text-slate-400">Terminal (.NET CLI)</span>
+                  </div>
+                  <button type="button" onclick="copyInstallSnippet()" id="btn-copy-install" class="flex items-center gap-1 text-slate-300 hover:text-white transition px-2 py-0.5 rounded hover:bg-slate-800">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                    <span>Copy</span>
+                  </button>
+                </div>
+                <div id="install-panel-cli" class="p-3.5 text-xs mono leading-relaxed overflow-x-auto text-emerald-400">
+                  dotnet add package VietQR.Core<br>
+                  dotnet add package VietQR.Deeplink.Client
+                </div>
+                <div id="install-panel-pkg" class="p-3.5 text-xs mono leading-relaxed overflow-x-auto text-slate-300 hidden">
+                  &lt;PackageReference Include="VietQR.Core" Version="1.0.1" /&gt;<br>
+                  &lt;PackageReference Include="VietQR.Deeplink.Client" Version="1.0.0" /&gt;
+                </div>
+                <div id="install-panel-pm" class="p-3.5 text-xs mono leading-relaxed overflow-x-auto text-emerald-400 hidden">
+                  Install-Package VietQR.Core<br>
+                  Install-Package VietQR.Deeplink.Client
+                </div>
+              </div>
+            </div>
+
+            <!-- 2. HUONG DAN SU DUNG VOI C# (.NET SDK) -->
+            <div class="card p-5 sm:p-7">
+              <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wide mb-1">2. Sử dụng thư viện C# (.NET SDK)</h2>
+              <p class="text-xs text-slate-500 mb-4">
+                Tích hợp chỉ với 3 bước đơn giản thông qua cơ chế Dependency Injection và Fluent API của VietQR.Core
+              </p>
+
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
+                <div class="border border-slate-200 rounded-lg p-3 bg-slate-50/50">
+                  <span class="text-xs font-bold text-slate-900 block mb-1">Bước 1: Đăng ký dịch vụ</span>
+                  <p class="text-[11px] text-slate-500">Gọi <code class="mono text-slate-800 font-semibold">builder.Services.AddVietQrDeeplink()</code> trong file <code class="mono">Program.cs</code>.</p>
+                </div>
+                <div class="border border-slate-200 rounded-lg p-3 bg-slate-50/50">
+                  <span class="text-xs font-bold text-slate-900 block mb-1">Bước 2: Tạo mã VietQR</span>
+                  <p class="text-[11px] text-slate-500">Khởi tạo đối tượng <code class="mono text-slate-800 font-semibold">new VietQr()</code> và cấu hình số tài khoản, số tiền, nội dung.</p>
+                </div>
+                <div class="border border-slate-200 rounded-lg p-3 bg-slate-50/50">
+                  <span class="text-xs font-bold text-slate-900 block mb-1">Bước 3: Lấy link Deeplink</span>
+                  <p class="text-[11px] text-slate-500">Gọi extension method <code class="mono text-slate-800 font-semibold">qr.ToDeeplinkUrlAsync(...)</code> và trả về URL cho ứng dụng.</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- 3. DAC TA API ENDPOINT -->
+            <div class="card p-5 sm:p-7">
+              <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wide mb-2">3. Đặc tả API Endpoint (REST API)</h2>
+              <p class="text-sm text-slate-600 leading-relaxed mb-4">
+                Endpoint khởi tạo phiên điều hướng ngắn hạn tới ứng dụng ngân hàng di động (áp dụng khi gọi từ dịch vụ ngoài .NET):
+              </p>
+
+              <div class="bg-slate-950 text-slate-200 rounded-lg p-3.5 text-xs mono mb-4 flex items-center justify-between border border-slate-800">
+                <div class="flex items-center gap-2">
+                  <span class="bg-sky-500/20 text-sky-400 font-bold px-2 py-0.5 rounded text-[11px] border border-sky-500/30">POST</span>
+                  <span class="text-white font-medium">/api/v1/vietqr-core/deeplink/intents</span>
+                </div>
+                <span class="text-slate-400 text-[11px]">Content-Type: application/json</span>
+              </div>
+
+              <div class="border border-slate-200 rounded-lg overflow-hidden mb-5">
+                <table class="w-full text-xs text-left">
+                  <thead class="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200">
+                    <tr>
+                      <th class="px-4 py-2.5">Trường dữ liệu</th>
+                      <th class="px-4 py-2.5">Kiểu</th>
+                      <th class="px-4 py-2.5">Bắt buộc</th>
+                      <th class="px-4 py-2.5">Mô tả</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100">
+                    <tr>
+                      <td class="px-4 py-2.5 mono font-semibold text-slate-900">appCode</td>
+                      <td class="px-4 py-2.5 mono text-slate-500">string</td>
+                      <td class="px-4 py-2.5 font-medium text-slate-900">Có</td>
+                      <td class="px-4 py-2.5 text-slate-600">Mã định danh ứng dụng thanh toán (ví dụ: <code class="mono font-semibold">MB</code>, <code class="mono font-semibold">TPB</code>, <code class="mono font-semibold">VCB</code>, <code class="mono font-semibold">TCB</code>, <code class="mono font-semibold">MOMO</code>).</td>
+                    </tr>
+                    <tr>
+                      <td class="px-4 py-2.5 mono font-semibold text-slate-900">qrCode</td>
+                      <td class="px-4 py-2.5 mono text-slate-500">string</td>
+                      <td class="px-4 py-2.5 font-medium text-slate-900">Có</td>
+                      <td class="px-4 py-2.5 text-slate-600">Chuỗi dữ liệu VietQR EMVCo đầy đủ với mã kiểm tra CRC16 hợp lệ (bắt đầu bằng <code class="mono font-semibold">000201...</code>).</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <span class="block text-xs font-semibold text-slate-700 mb-2">Định dạng dữ liệu trả về (Response Payload)</span>
+              <pre class="mono bg-slate-950 text-emerald-400 p-4 rounded-lg text-xs leading-relaxed overflow-x-auto border border-slate-800">{
+  "code": "00",
+  "desc": "Thành công",
+  "data": {
+    "url": "http://localhost:5187/p/8f1e2d3c",
+    "expiresInSeconds": 60
+  }
+}</pre>
+            </div>
+
+            <!-- 4. MA NGUON MAU TICH HOP (CODE SAMPLES) -->
+            <div class="card p-5 sm:p-7">
+              <div class="mb-4">
+                <h2 class="text-sm font-bold text-slate-900 uppercase tracking-wide">4. Mã nguồn mẫu tích hợp</h2>
+                <p class="text-xs text-slate-500 mt-0.5">Tích hợp bằng C# .NET SDK chính thức hoặc gọi trực tiếp qua HTTP Client các ngôn ngữ</p>
+              </div>
+
+              <!-- UNIFIED CODE EDITOR WINDOW -->
+              <div class="rounded-xl overflow-hidden border border-slate-800 bg-slate-950 shadow-md">
+                
+                <!-- EDITOR HEADER & LANGUAGE TABS -->
+                <div class="flex flex-col sm:flex-row items-stretch sm:items-center justify-between px-3 py-2 bg-slate-900/90 border-b border-slate-800 gap-2">
+                  <div class="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0">
+                    <button type="button" onclick="switchSnippetTab('csharp-sdk')" id="snippet-btn-csharp-sdk"
+                            class="code-tab active px-3 py-1.5 rounded-md text-xs font-medium text-slate-200 hover:text-white transition whitespace-nowrap">
+                      C# (.NET SDK / NuGet)
+                    </button>
+                    <button type="button" onclick="switchSnippetTab('csharp-http')" id="snippet-btn-csharp-http"
+                            class="code-tab px-3 py-1.5 rounded-md text-xs font-medium text-slate-400 hover:text-white transition whitespace-nowrap">
+                      C# (HttpClient)
+                    </button>
+                    <button type="button" onclick="switchSnippetTab('curl')" id="snippet-btn-curl"
+                            class="code-tab px-3 py-1.5 rounded-md text-xs font-medium text-slate-400 hover:text-white transition whitespace-nowrap">
+                      cURL
+                    </button>
+                    <button type="button" onclick="switchSnippetTab('js')" id="snippet-btn-js"
+                            class="code-tab px-3 py-1.5 rounded-md text-xs font-medium text-slate-400 hover:text-white transition whitespace-nowrap">
+                      JavaScript
+                    </button>
+                    <button type="button" onclick="switchSnippetTab('python')" id="snippet-btn-python"
+                            class="code-tab px-3 py-1.5 rounded-md text-xs font-medium text-slate-400 hover:text-white transition whitespace-nowrap">
+                      Python
+                    </button>
+                    <button type="button" onclick="switchSnippetTab('php')" id="snippet-btn-php"
+                            class="code-tab px-3 py-1.5 rounded-md text-xs font-medium text-slate-400 hover:text-white transition whitespace-nowrap">
+                      PHP
+                    </button>
+                  </div>
+
+                  <div class="flex items-center justify-between sm:justify-end gap-2 shrink-0">
+                    <span id="snippet-file-label" class="text-[11px] mono text-slate-400 hidden md:inline">CheckoutController.cs</span>
+                    <button type="button" onclick="copyActiveCodeSnippet()" id="btn-copy-code"
+                            class="flex items-center gap-1.5 px-2.5 py-1 text-xs text-slate-300 hover:text-white bg-slate-800/80 hover:bg-slate-800 border border-slate-700/80 rounded-md transition font-medium">
+                      <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                      <span>Copy</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- CODE PANELS -->
+
+                <!-- 1. C# SDK (RECOMMENDED) -->
+                <div id="snippet-csharp-sdk" class="snippet-block">
+                  <pre id="code-csharp-sdk" class="mono p-4 text-xs leading-relaxed overflow-x-auto text-slate-200"><span class="hl-comment">// 1. Đăng ký dịch vụ trong Program.cs:</span>
+<span class="hl-kw">builder</span>.Services.<span class="hl-func">AddVietQrDeeplink</span>();
+
+<span class="hl-comment">// 2. Tiêm IVietQrDeeplinkClient vào Controller hoặc Service:</span>
+<span class="hl-kw">using</span> VietQR.Core;
+<span class="hl-kw">using</span> VietQR.Deeplink.Client;
+
+<span class="hl-kw">public class</span> <span class="hl-type">CheckoutController</span> : <span class="hl-type">ControllerBase</span>
+{
+    <span class="hl-kw">private readonly</span> <span class="hl-type">IVietQrDeeplinkClient</span> _deeplinkClient;
+
+    <span class="hl-kw">public</span> <span class="hl-func">CheckoutController</span>(<span class="hl-type">IVietQrDeeplinkClient</span> deeplinkClient)
+    {
+        _deeplinkClient = deeplinkClient;
+    }
+
+    [<span class="hl-type">HttpPost</span>(<span class="hl-str">"create-payment"</span>)]
+    <span class="hl-kw">public async</span> <span class="hl-type">Task</span>&lt;<span class="hl-type">IActionResult</span>&gt; <span class="hl-func">CreatePayment</span>()
+    {
+        <span class="hl-comment">// Tạo mã VietQR chuẩn NAPAS247 bằng VietQR.Core (NuGet)</span>
+        <span class="hl-kw">var</span> qr = <span class="hl-kw">new</span> <span class="hl-type">VietQr</span>()
+            .<span class="hl-func">SetBeneficiaryOrganization</span>(<span class="hl-str">"970422"</span>, <span class="hl-str">"056789799999"</span>, <span class="hl-type">VietQrServiceType</span>.Account)
+            .<span class="hl-func">SetTransactionAmount</span>(<span class="hl-str">"50000"</span>)
+            .<span class="hl-func">SetAdditionalData</span>(purpose: <span class="hl-str">"thanh toan don hang"</span>);
+
+        <span class="hl-comment">// Tạo link Deeplink mở ứng dụng MBBank tự động điền STK, tiền, nội dung</span>
+        <span class="hl-kw">var</span> intent = <span class="hl-kw">await</span> qr.<span class="hl-func">ToDeeplinkUrlAsync</span>(_deeplinkClient, <span class="hl-str">"MB"</span>);
+        <span class="hl-kw">if</span> (intent is <span class="hl-kw">null</span>) <span class="hl-kw">return</span> <span class="hl-func">BadRequest</span>(<span class="hl-str">"Không tạo được liên kết điều hướng."</span>);
+
+        <span class="hl-kw">return</span> <span class="hl-func">Ok</span>(<span class="hl-kw">new</span> { url = intent.Url, expiresIn = intent.ExpiresInSeconds });
+    }
+}</pre>
+                </div>
+
+                <!-- 2. C# HTTP CLIENT -->
+                <div id="snippet-csharp-http" class="snippet-block hidden">
+                  <pre id="code-csharp-http" class="mono p-4 text-xs leading-relaxed overflow-x-auto text-slate-200"><span class="hl-kw">using</span> System.Net.Http.Json;
+
+<span class="hl-kw">using var</span> httpClient = <span class="hl-kw">new</span> <span class="hl-type">HttpClient</span>();
+<span class="hl-kw">var</span> payload = <span class="hl-kw">new</span>
+{
+    appCode = <span class="hl-str">"MB"</span>,
+    qrCode = <span class="hl-str">"00020101021238560010A0000007270126000697042201120567897999990208QRIBFTTA53037045405500005802VN62230819thanh toan don hang6304B18D"</span>
+};
+
+<span class="hl-kw">var</span> response = <span class="hl-kw">await</span> httpClient.<span class="hl-func">PostAsJsonAsync</span>(
+    <span class="hl-str">"https://api.yourdomain.com/api/v1/vietqr-core/deeplink/intents"</span>, payload);
+<span class="hl-kw">var</span> result = <span class="hl-kw">await</span> response.Content.<span class="hl-func">ReadFromJsonAsync</span>&lt;<span class="hl-type">ApiResponse</span>&lt;<span class="hl-type">DeeplinkResult</span>&gt;&gt;();
+
+<span class="hl-kw">if</span> (result?.Code == <span class="hl-str">"00"</span>)
+{
+    <span class="hl-kw">string</span> targetUrl = result.Data.Url;
+    <span class="hl-comment">// Điều hướng người dùng tới liên kết chuyển tiếp</span>
+}</pre>
+                </div>
+
+                <!-- 3. cURL -->
+                <div id="snippet-curl" class="snippet-block hidden">
+                  <pre id="code-curl" class="mono p-4 text-xs leading-relaxed overflow-x-auto text-slate-200"><span class="hl-func">curl</span> -X POST <span class="hl-str">"https://api.yourdomain.com/api/v1/vietqr-core/deeplink/intents"</span> \
+  -H <span class="hl-str">"Content-Type: application/json"</span> \
+  -d <span class="hl-str">'{
+    "appCode": "MB",
+    "qrCode": "00020101021238560010A0000007270126000697042201120567897999990208QRIBFTTA53037045405500005802VN62230819thanh toan don hang6304B18D"
+  }'</span></pre>
+                </div>
+
+                <!-- 4. JAVASCRIPT -->
+                <div id="snippet-js" class="snippet-block hidden">
+                  <pre id="code-js" class="mono p-4 text-xs leading-relaxed overflow-x-auto text-slate-200"><span class="hl-kw">async function</span> <span class="hl-func">createDeeplink</span>(appCode, emvQrCode) {
+  <span class="hl-kw">const</span> res = <span class="hl-kw">await</span> <span class="hl-func">fetch</span>(<span class="hl-str">'/api/v1/vietqr-core/deeplink/intents'</span>, {
+    method: <span class="hl-str">'POST'</span>,
+    headers: { <span class="hl-str">'Content-Type'</span>: <span class="hl-str">'application/json'</span> },
+    body: JSON.<span class="hl-func">stringify</span>({ appCode, qrCode: emvQrCode })
+  });
+
+  <span class="hl-kw">const</span> json = <span class="hl-kw">await</span> res.<span class="hl-func">json</span>();
+  <span class="hl-kw">if</span> (json.code === <span class="hl-str">'00'</span>) {
+    <span class="hl-comment">// Điều hướng người dùng tới liên kết mở app</span>
+    window.location.href = json.data.url;
+  }
+}</pre>
+                </div>
+
+                <!-- 5. PYTHON -->
+                <div id="snippet-python" class="snippet-block hidden">
+                  <pre id="code-python" class="mono p-4 text-xs leading-relaxed overflow-x-auto text-slate-200"><span class="hl-kw">import</span> requests
+
+payload = {
+    <span class="hl-str">"appCode"</span>: <span class="hl-str">"MB"</span>,
+    <span class="hl-str">"qrCode"</span>: <span class="hl-str">"00020101021238560010A0000007270126000697042201120567897999990208QRIBFTTA53037045405500005802VN62230819thanh toan don hang6304B18D"</span>
+}
+
+res = requests.<span class="hl-func">post</span>(<span class="hl-str">"https://api.yourdomain.com/api/v1/vietqr-core/deeplink/intents"</span>, json=payload)
+data = res.<span class="hl-func">json</span>()
+<span class="hl-kw">if</span> data.<span class="hl-func">get</span>(<span class="hl-str">"code"</span>) == <span class="hl-str">"00"</span>:
+    target_url = data[<span class="hl-str">"data"</span>][<span class="hl-str">"url"</span>]
+    <span class="hl-func">print</span>(f<span class="hl-str">"Mở liên kết: {target_url}"</span>)</pre>
+                </div>
+
+                <!-- 6. PHP -->
+                <div id="snippet-php" class="snippet-block hidden">
+                  <pre id="code-php" class="mono p-4 text-xs leading-relaxed overflow-x-auto text-slate-200">&lt;?php
+$payload = [
+    <span class="hl-str">'appCode'</span> =&gt; <span class="hl-str">'MB'</span>,
+    <span class="hl-str">'qrCode'</span>  =&gt; <span class="hl-str">'00020101021238560010A0000007270126000697042201120567897999990208QRIBFTTA53037045405500005802VN62230819thanh toan don hang6304B18D'</span>
+];
+
+$ch = <span class="hl-func">curl_init</span>(<span class="hl-str">'https://api.yourdomain.com/api/v1/vietqr-core/deeplink/intents'</span>);
+<span class="hl-func">curl_setopt</span>($ch, CURLOPT_RETURNTRANSFER, <span class="hl-kw">true</span>);
+<span class="hl-func">curl_setopt</span>($ch, CURLOPT_POST, <span class="hl-kw">true</span>);
+<span class="hl-func">curl_setopt</span>($ch, CURLOPT_HTTPHEADER, [<span class="hl-str">'Content-Type: application/json'</span>]);
+<span class="hl-func">curl_setopt</span>($ch, CURLOPT_POSTFIELDS, <span class="hl-func">json_encode</span>($payload));
+
+$response = <span class="hl-func">curl_exec</span>($ch);
+$data = <span class="hl-func">json_decode</span>($response, <span class="hl-kw">true</span>);
+<span class="hl-kw">if</span> ($data &amp;&amp; $data[<span class="hl-str">'code'</span>] === <span class="hl-str">'00'</span>) {
+    $targetUrl = $data[<span class="hl-str">'data'</span>][<span class="hl-str">'url'</span>];
+    <span class="hl-func">header</span>(<span class="hl-str">"Location: $targetUrl"</span>);
+    <span class="hl-kw">exit</span>;
+}</pre>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+
+          <!-- SUB-TAB 2: DEMO THỰC TẾ (PLAYGROUND) -->
+          <div id="deeplink-subtab-demo" class="hidden fade-in space-y-6">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+              <!-- CONFIGURATION FORM -->
+              <div class="lg:col-span-7 card p-5 sm:p-6">
+                <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+                  <h2 class="text-sm font-semibold text-slate-900">Cấu hình tham số kiểm thử</h2>
+                  <button type="button" onclick="syncDataFromGenerator()"
+                          class="text-xs text-slate-600 hover:text-slate-900 font-medium flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2v6h-6M3 12a9 9 0 0 1 15-6.7L21 8M3 22v-6h6M21 12a9 9 0 0 1-15 6.7L3 16"/></svg>
+                    <span>Lấy từ Tab Tạo mã QR</span>
+                  </button>
+                </div>
+
+                <form onsubmit="event.preventDefault(); generateDemoDeeplink();" class="space-y-4 text-xs">
+                  <div>
+                    <label for="demo-app-select" class="block font-medium text-slate-700 mb-1.5">Ứng dụng ngân hàng ưu tiên mở</label>
+                    <select id="demo-app-select" onchange="onDemoAppChange(); generateDemoDeeplink();"
+                            class="w-full border border-slate-300 bg-white rounded-lg px-3 py-2 text-xs transition">
+                      <option value="MB" selected>MBBank — MB Bank (Tự điền)</option>
+                      <option value="TPB">TPBank — TPBank Mobile (Tự điền)</option>
+                      <option value="VCB">Vietcombank — VCB Digibank</option>
+                      <option value="TCB">Techcombank — Techcombank Mobile</option>
+                      <option value="ICB">VietinBank — VietinBank iPay</option>
+                      <option value="BIDV">BIDV — BIDV SmartBanking</option>
+                    </select>
+                  </div>
+
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label for="demo-bank-bin" class="block font-medium text-slate-700 mb-1.5">Ngân hàng thụ hưởng (BIN)</label>
+                      <select id="demo-bank-bin" onchange="generateDemoDeeplink();"
+                              class="w-full border border-slate-300 bg-white rounded-lg px-3 py-2 text-xs transition">
+                        <option value="970422" selected>MBBank (970422)</option>
+                        <option value="970423">TPBank (970423)</option>
+                        <option value="970436">Vietcombank (970436)</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label for="demo-account-no" class="block font-medium text-slate-700 mb-1.5">Số tài khoản nhận tiền</label>
+                      <input type="text" id="demo-account-no" value="056789799999" required
+                             class="w-full border border-slate-300 bg-white rounded-lg px-3 py-2 text-xs mono transition">
+                      <p class="text-[11px] text-slate-500 mt-1">
+                        Lưu ý: App ngân hàng sẽ truy vấn NAPAS247 thật khi mở link. Hãy nhập <strong>số tài khoản có thật</strong> để app nhận diện đúng ngân hàng &amp; tên người nhận.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                      <label for="demo-amount" class="block font-medium text-slate-700 mb-1.5">Số tiền (VNĐ)</label>
+                      <input type="number" id="demo-amount" value="50000" min="1" max="9999999999999" required
+                             class="w-full border border-slate-300 bg-white rounded-lg px-3 py-2 text-xs transition">
+                    </div>
+                    <div>
+                      <label for="demo-desc" class="block font-medium text-slate-700 mb-1.5">Nội dung chuyển khoản</label>
+                      <input type="text" id="demo-desc" value="thanh toan don hang" required maxlength="95"
+                             class="w-full border border-slate-300 bg-white rounded-lg px-3 py-2 text-xs transition">
+                    </div>
+                  </div>
+
+                  <div class="pt-2">
+                    <button type="submit" id="btn-create-demo-deeplink"
+                            class="w-full bg-slate-900 hover:bg-slate-800 text-white font-medium py-2.5 px-4 rounded-lg transition text-sm">
+                      Tạo liên kết Deeplink
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              <!-- RESPONSE & TESTING -->
+              <div class="lg:col-span-5 space-y-4">
+                <div class="card p-5 sm:p-6 text-center">
+                  <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100 text-left">
+                    <h2 class="text-sm font-semibold text-slate-900">Kết quả điều hướng</h2>
+                    <span id="demo-autofill-badge" class="text-[11px] font-medium text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                      Hỗ trợ tự điền
+                    </span>
+                  </div>
+
+                  <!-- QR CODE TO SCAN ON DEVICE -->
+                  <div class="inline-block p-3 bg-white border border-slate-200 rounded-lg mb-3">
+                    <div id="demo-qr-container" class="w-40 h-40 flex items-center justify-center bg-slate-50 rounded overflow-hidden">
+                      <span class="text-xs text-slate-400">Đang khởi tạo…</span>
+                    </div>
+                  </div>
+                  <p class="text-xs text-slate-500 mb-4 max-w-xs mx-auto">
+                    Quét mã QR bằng camera điện thoại để kiểm thử mở ứng dụng ngân hàng.
+                  </p>
+
+                  <!-- INTENT URL FIELD -->
+                  <div class="bg-slate-50 border border-slate-200 rounded-lg p-3 text-left mb-3">
+                    <div class="flex items-center justify-between text-xs mb-1">
+                      <span class="font-medium text-slate-600">Đường dẫn điều hướng:</span>
+                      <span class="text-slate-400 text-[10px] font-mono">Hiệu lực 60s</span>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                      <input type="text" id="demo-result-url" readonly
+                             class="mono text-xs text-slate-800 bg-white border border-slate-200 rounded px-2 py-1.5 flex-1 min-w-0 select-all"
+                             value="Đang xử lý…">
+                      <button type="button" onclick="copyDemoUrl()"
+                              class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-medium px-3 py-1.5 rounded transition shrink-0">
+                        Copy
+                      </button>
+                    </div>
+                  </div>
+
+                  <a id="demo-open-btn" href="#" target="_blank" rel="noopener"
+                     class="w-full inline-block border border-slate-300 hover:bg-slate-50 text-slate-800 font-medium py-2 px-4 rounded-lg transition text-xs text-center">
+                    Mở liên kết trên trình duyệt này
+                  </a>
+
+                  <p class="text-[11px] text-slate-500 text-left mt-3 pt-3 border-t border-slate-100 leading-relaxed">
+                    Liên kết sẽ tự động kích hoạt ứng dụng ngân hàng nếu mở trên thiết bị di động, hoặc hiển thị trang thanh toán nếu mở trên máy tính.
+                  </p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB 3: DECODER (GIẢI MÃ ẢNH QR)           -->
+        <!-- ========================================== -->
+        <div id="tab-decoder" class="hidden fade-in">
+          <div class="max-w-3xl mx-auto card p-5 sm:p-7">
+            <h1 class="text-base font-semibold text-slate-900 mb-1">Giải mã mã QR từ hình ảnh</h1>
+            <p class="text-xs text-slate-500 mb-5">Tải lên tệp ảnh, kéo thả hoặc dán ảnh chụp màn hình (Ctrl/Cmd + V) để bóc tách dữ liệu.</p>
+
+            <div id="drop-zone"
+                 class="border border-dashed border-slate-300 hover:border-slate-500 rounded-xl p-8 text-center cursor-pointer transition bg-slate-50/50">
+              <p class="text-xs text-slate-600 font-medium">Kéo thả ảnh vào khu vực này, hoặc <span class="text-slate-900 underline">bấm để chọn file</span></p>
+              <p class="text-[11px] text-slate-400 mt-1">Định dạng hỗ trợ: PNG, JPEG, WebP, BMP</p>
+              <input type="file" id="file-input" accept="image/*" class="hidden">
+            </div>
+
+            <div id="decode-status" class="hidden mt-4 text-xs text-slate-500 flex items-center gap-2">
+              <svg class="w-4 h-4 animate-spin text-slate-700" viewBox="0 0 24 24" fill="none"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3"/><path class="opacity-75" fill="currentColor" d="M22 12a10 10 0 0 1-10 10c-1.9 0-3.7-.5-5.2-1.5l1.4-1.6A8 8 0 0 0 22 12z"/></svg>
+              Đang xử lý giải mã hình ảnh…
+            </div>
+
+            <div id="decode-result" class="mt-5 hidden">
+              <div class="flex items-center gap-2 mb-3">
+                <span id="dec-crc" class="text-[11px] font-medium px-2 py-0.5 rounded border"></span>
+                <span id="dec-qrtype" class="text-[11px] font-medium px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200"></span>
+              </div>
+              <div class="bg-white border border-slate-200 rounded-lg divide-y divide-slate-100">
+                <dl class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3.5 p-4 text-xs">
+                  <div><dt class="text-slate-500 mb-0.5">Ngân hàng</dt><dd id="dec-bank" class="font-medium text-slate-900">—</dd></div>
+                  <div><dt class="text-slate-500 mb-0.5">Số tài khoản / thẻ</dt><dd id="dec-account" class="font-medium mono text-slate-900">—</dd></div>
+                  <div><dt class="text-slate-500 mb-0.5">Số tiền</dt><dd id="dec-amount" class="font-semibold text-slate-900">—</dd></div>
+                  <div><dt class="text-slate-500 mb-0.5">Nội dung chuyển khoản</dt><dd id="dec-desc" class="text-slate-800">—</dd></div>
+                  <div><dt class="text-slate-500 mb-0.5">Phương thức</dt><dd id="dec-service" class="text-slate-700">—</dd></div>
+                  <div><dt class="text-slate-500 mb-0.5">Mã đơn hàng (Tag 62.01)</dt><dd id="dec-bill" class="mono text-slate-700">—</dd></div>
+                </dl>
+                <div class="p-4">
+                  <span class="text-xs font-medium text-slate-500 block mb-1">Chuỗi EMVCo thô</span>
+                  <pre id="dec-raw" class="mono bg-slate-950 text-slate-200 p-3 rounded text-[11px] break-all whitespace-pre-wrap max-h-24 overflow-y-auto border border-slate-800"></pre>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB 4: PARSER (PHÂN TÍCH CHUỖI TLV)       -->
+        <!-- ========================================== -->
+        <div id="tab-parser" class="hidden fade-in">
+          <div class="max-w-3xl mx-auto card p-5 sm:p-7">
+            <h1 class="text-base font-semibold text-slate-900 mb-1">Phân tích chuỗi EMVCo TLV</h1>
+            <p class="text-xs text-slate-500 mb-4">Dán chuỗi thanh toán VietQR bắt đầu bằng mã <code class="mono bg-slate-100 px-1 py-0.5 rounded text-slate-800 font-semibold">000201...</code> để phân tách cấu trúc các Tag dữ liệu.</p>
+
+            <textarea id="parse-input" rows="3"
+                      placeholder="Dán chuỗi mã VietQR..."
+                      class="w-full border border-slate-300 bg-white rounded-lg p-3 text-xs mono transition"></textarea>
+            <button onclick="parsePayload()"
+                    class="mt-3 bg-slate-900 hover:bg-slate-800 text-white text-xs font-medium py-2 px-4 rounded-lg transition">
+              Phân tích cú pháp
+            </button>
+
+            <div id="parse-result" class="mt-5 hidden space-y-4">
+              <div id="parse-meta" class="flex flex-wrap gap-2"></div>
+              <div>
+                <span class="text-xs font-medium text-slate-700 block mb-1">Dữ liệu phân tích (JSON)</span>
+                <pre id="parse-json" class="mono bg-slate-950 text-slate-200 p-3.5 rounded-lg text-[11px] leading-relaxed overflow-x-auto max-h-80 border border-slate-800"></pre>
+              </div>
+
+              <div>
+                <span class="text-xs font-medium text-slate-700 block mb-1">Danh sách Tag TLV</span>
+                <div class="border border-slate-200 rounded-lg overflow-hidden max-h-64 overflow-y-auto">
+                  <table class="w-full text-xs text-left">
+                    <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+                      <tr><th class="px-3 py-2">Tag</th><th class="px-3 py-2">Độ dài</th><th class="px-3 py-2">Nội dung</th></tr>
+                    </thead>
+                    <tbody id="parse-tags" class="divide-y divide-slate-100 font-mono"></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB 5: API REFERENCE                      -->
+        <!-- ========================================== -->
+        <div id="tab-apidocs" class="hidden fade-in">
+          <div class="max-w-4xl mx-auto space-y-5">
+            <div class="card p-5 sm:p-7">
+              <h1 class="text-base font-semibold text-slate-900 mb-1">Danh mục API Endpoints</h1>
+              <p class="text-xs text-slate-500 mb-5">
+                Các endpoint chuẩn RESTful phục vụ sinh mã, kết xuất đồ họa và phân giải Deeplink tại đường dẫn gốc <code class="mono bg-slate-100 px-1 py-0.5 rounded font-semibold text-slate-800">/api/v1/vietqr-core</code>.
+              </p>
+
+              <div class="border border-slate-200 rounded-lg overflow-x-auto">
+                <table class="w-full text-xs text-left">
+                  <thead class="bg-slate-50 text-slate-700 font-semibold border-b border-slate-200 uppercase tracking-wide text-[11px]">
+                    <tr>
+                      <th class="px-4 py-2.5">Method</th>
+                      <th class="px-4 py-2.5">Endpoint</th>
+                      <th class="px-4 py-2.5">Chức năng</th>
+                      <th class="px-4 py-2.5">Kiểu trả về</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100">
+                    <tr>
+                      <td class="px-4 py-2.5"><span class="mono font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded text-[11px]">GET</span></td>
+                      <td class="px-4 py-2.5 mono font-medium text-slate-900">/generate</td>
+                      <td class="px-4 py-2.5 text-slate-600">Sinh chuỗi EMVCo và chuỗi Base64 Data URL</td>
+                      <td class="px-4 py-2.5 text-slate-500">JSON</td>
+                    </tr>
+                    <tr>
+                      <td class="px-4 py-2.5"><span class="mono font-bold text-sky-700 bg-sky-50 border border-sky-200 px-2 py-0.5 rounded text-[11px]">POST</span></td>
+                      <td class="px-4 py-2.5 mono font-medium text-slate-900">/generate</td>
+                      <td class="px-4 py-2.5 text-slate-600">Như GET, truyền qua request body (hỗ trợ logo tùy biến)</td>
+                      <td class="px-4 py-2.5 text-slate-500">JSON</td>
+                    </tr>
+                    <tr>
+                      <td class="px-4 py-2.5"><span class="mono font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded text-[11px]">GET</span></td>
+                      <td class="px-4 py-2.5 mono font-medium text-slate-900">/image</td>
+                      <td class="px-4 py-2.5 text-slate-600">Trả về trực tiếp luồng binary hình ảnh (PNG, WebP, SVG)</td>
+                      <td class="px-4 py-2.5 text-slate-500">Binary</td>
+                    </tr>
+                    <tr>
+                      <td class="px-4 py-2.5"><span class="mono font-bold text-sky-700 bg-sky-50 border border-sky-200 px-2 py-0.5 rounded text-[11px]">POST</span></td>
+                      <td class="px-4 py-2.5 mono font-medium text-slate-900">/deeplink/intents</td>
+                      <td class="px-4 py-2.5 text-slate-600">Khởi tạo liên kết mở ứng dụng ngân hàng có thời hạn</td>
+                      <td class="px-4 py-2.5 text-slate-500">JSON</td>
+                    </tr>
+                    <tr>
+                      <td class="px-4 py-2.5"><span class="mono font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded text-[11px]">GET</span></td>
+                      <td class="px-4 py-2.5 mono font-medium text-slate-900">/deeplink/apps</td>
+                      <td class="px-4 py-2.5 text-slate-600">Lấy danh mục các ứng dụng hỗ trợ điều hướng Deeplink</td>
+                      <td class="px-4 py-2.5 text-slate-500">JSON</td>
+                    </tr>
+                    <tr>
+                      <td class="px-4 py-2.5"><span class="mono font-bold text-sky-700 bg-sky-50 border border-sky-200 px-2 py-0.5 rounded text-[11px]">POST</span></td>
+                      <td class="px-4 py-2.5 mono font-medium text-slate-900">/decode</td>
+                      <td class="px-4 py-2.5 text-slate-600">Giải mã thông tin giao dịch từ file ảnh tải lên</td>
+                      <td class="px-4 py-2.5 text-slate-500">JSON</td>
+                    </tr>
+                    <tr>
+                      <td class="px-4 py-2.5"><span class="mono font-bold text-sky-700 bg-sky-50 border border-sky-200 px-2 py-0.5 rounded text-[11px]">POST</span></td>
+                      <td class="px-4 py-2.5 mono font-medium text-slate-900">/parse</td>
+                      <td class="px-4 py-2.5 text-slate-600">Phân tách cấu trúc các Tag dữ liệu từ chuỗi EMVCo</td>
+                      <td class="px-4 py-2.5 text-slate-500">JSON</td>
+                    </tr>
+                    <tr>
+                      <td class="px-4 py-2.5"><span class="mono font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded text-[11px]">GET</span></td>
+                      <td class="px-4 py-2.5 mono font-medium text-slate-900">/banks</td>
+                      <td class="px-4 py-2.5 text-slate-600">Danh mục 76+ ngân hàng thành viên NAPAS247</td>
+                      <td class="px-4 py-2.5 text-slate-500">JSON</td>
+                    </tr>
+                    <tr>
+                      <td class="px-4 py-2.5"><span class="mono font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded text-[11px]">GET</span></td>
+                      <td class="px-4 py-2.5 mono font-medium text-slate-900">/banks/{binOrCode}</td>
+                      <td class="px-4 py-2.5 text-slate-600">Tra cứu 1 ngân hàng theo BIN hoặc mã Code (VD: 970422, MB)</td>
+                      <td class="px-4 py-2.5 text-slate-500">JSON</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- ERROR CODES ONLY -->
+              <div class="mt-5 border border-slate-200 rounded-lg p-4 bg-slate-50/50 text-xs text-slate-600 space-y-1">
+                <p><b>Quy ước mã phản hồi:</b> <code class="mono font-semibold">00</code> Thành công · <code class="mono font-semibold">01</code> Thiếu tham số · <code class="mono font-semibold">02</code> Số tiền không hợp lệ · <code class="mono font-semibold">03</code> Số tài khoản / BIN không đúng · <code class="mono font-semibold">04</code> Không tìm thấy ngân hàng · <code class="mono font-semibold">05</code> Sai template · <code class="mono font-semibold">06</code> Lỗi đọc ảnh · <code class="mono font-semibold">07</code> Sai chuẩn chuỗi / cổng lỗi · <code class="mono font-semibold">99</code> Lỗi hệ thống.</p>
+              </div>
+
+              <!-- CODE EXAMPLES -->
+              <div class="mt-5">
+                <p class="font-bold text-slate-800 mb-2 text-xs uppercase tracking-wide">Ví dụ nhanh</p>
+                <pre class="mono bg-slate-950 text-slate-300 p-4 rounded-lg text-[11px] leading-5 overflow-x-auto border border-slate-800"># 1. Sinh chuỗi và ảnh thẻ:
+curl "https://your-host/api/v1/vietqr-core/generate?bankBin=970422&amp;accountNo=056789799999&amp;amount=50000&amp;description=thanh%20toan"
+
+# 2. Tạo link Deeplink mở app ngân hàng tự điền:
+curl -X POST "https://your-host/api/v1/vietqr-core/deeplink/intents" \
+  -H "Content-Type: application/json" \
+  -d '{"appCode":"MB","qrCode":"00020101021238560010A0000007270126000697042201120567897999990208QRIBFTTA53037045405500005802VN62230819thanh toan don hang6304B18D"}'
+
+# 3. Nhúng ảnh trực tiếp vào trang web:
+&lt;img src="https://your-host/api/v1/vietqr-core/image?bankBin=970422&amp;accountNo=056789799999&amp;amount=50000&amp;description=thanh toan"&gt;</pre>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </section>
+    </div>
+  </main>
+
+  <!-- TOAST CONTAINER -->
+  <div id="toast-root" class="fixed bottom-4 right-4 z-50 space-y-2 w-80 max-w-[calc(100vw-2rem)]"></div>
+
+  <!-- FOOTER -->
+  <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-2">
+      <p>© 2026 VietQR.Core — Giấy phép MIT. Chuẩn hóa theo quy định NAPAS247 &amp; EMVCo.</p>
+      <div class="flex items-center gap-3">
+        <a href="https://github.com/Ngochiendev/vietqr-core" target="_blank" rel="noopener" class="hover:text-slate-800 transition">GitHub</a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    'use strict';
+
+    /* ---------- State Management ---------- */
+    let currentDataUrl = '';
+    let currentPayload = '';
+    let currentExtension = 'png';
+    let customLogoDataUrl = '';
+    let generateTimer = null;
+    let activeSnippetLang = 'csharp-sdk';
+
+    let allBanks = [];          // Danh mục ngân hàng (/banks)
+    let deeplinkApps = [];      // Danh mục ứng dụng deeplink (/deeplink/apps)
+    const autofillBankBins = new Set(['970422', '970423']); // MB (970422) & TPBank (970423)
+
+    const FALLBACK_DEEPLINK_APPS = [
+      { appCode: "MB", bin: "970422", shortName: "MBBank", appName: "MB Bank", supportsAutofill: true, logo: "http://localhost:5187/icons/mb.png" },
+      { appCode: "TPB", bin: "970423", shortName: "TPBank", appName: "TPBank Mobile", supportsAutofill: true, logo: "http://localhost:5187/icons/tpb.png" },
+      { appCode: "VCB", bin: "970436", shortName: "Vietcombank", appName: "VCB Digibank", supportsAutofill: false, logo: "http://localhost:5187/icons/vcb.png" },
+      { appCode: "TCB", bin: "970407", shortName: "Techcombank", appName: "Techcombank Mobile", supportsAutofill: false, logo: "http://localhost:5187/icons/tcb.png" },
+      { appCode: "ICB", bin: "970415", shortName: "VietinBank", appName: "VietinBank iPay", supportsAutofill: false, logo: "http://localhost:5187/icons/icb.png" },
+      { appCode: "BIDV", bin: "970418", shortName: "BIDV", appName: "BIDV SmartBanking", supportsAutofill: false, logo: "http://localhost:5187/icons/bidv.png" },
+      { appCode: "ACB", bin: "970416", shortName: "ACB", appName: "ACB ONE", supportsAutofill: false, logo: "http://localhost:5187/icons/acb.png" },
+      { appCode: "VPB", bin: "970432", shortName: "VPBank", appName: "VPBank NEO", supportsAutofill: false, logo: "http://localhost:5187/icons/vpb.png" },
+      { appCode: "VBA", bin: "970405", shortName: "Agribank", appName: "Agribank Plus", supportsAutofill: false, logo: "http://localhost:5187/icons/vba.png" },
+      { appCode: "VIB", bin: "970441", shortName: "VIB", appName: "MyVIB", supportsAutofill: false, logo: "http://localhost:5187/icons/vib.png" },
+      { appCode: "OCB", bin: "970448", shortName: "OCB", appName: "OCB OMNI", supportsAutofill: false, logo: "http://localhost:5187/icons/ocb.png" },
+      { appCode: "SHB", bin: "970443", shortName: "SHB", appName: "SHB SAHA", supportsAutofill: false, logo: "http://localhost:5187/icons/shb.png" },
+      { appCode: "HDB", bin: "970437", shortName: "HDBank", appName: "HDBank", supportsAutofill: false, logo: "http://localhost:5187/icons/hdb.png" },
+      { appCode: "MSB", bin: "970426", shortName: "MSB", appName: "MSB mBank", supportsAutofill: false, logo: "http://localhost:5187/icons/msb.png" },
+      { appCode: "STB", bin: "970403", shortName: "Sacombank", appName: "Sacombank Pay", supportsAutofill: false, logo: "http://localhost:5187/icons/stb.png" },
+      { appCode: "MOMO", bin: "971025", shortName: "MoMo", appName: "Ví MoMo", supportsAutofill: false, logo: "http://localhost:5187/icons/momo.png" },
+      { appCode: "ZALOPAY", bin: "971101", shortName: "ZaloPay", appName: "Ví ZaloPay", supportsAutofill: false, logo: "http://localhost:5187/icons/zalopay.png" },
+      { appCode: "VNPAY", bin: null, shortName: "VNPAY", appName: "Ví VNPAY", supportsAutofill: false, logo: "http://localhost:5187/icons/vnpay.png" }
+    ];
+
+    /* ---------- DOM Utilities ---------- */
+    const $ = (id) => document.getElementById(id);
+
+    function pick(obj, name, fallback = undefined) {
+      if (!obj) return fallback;
+      for (const key of Object.keys(obj)) {
+        if (key.toLowerCase() === String(name).toLowerCase()) return obj[key];
+      }
+      return fallback;
+    }
+
+    function toast(message, type = 'info') {
+      const palette = {
+        info:    ['bg-slate-900', 'text-white'],
+        success: ['bg-slate-900', 'text-emerald-400'],
+        error:   ['bg-rose-900', 'text-white'],
+      };
+      const [bg, fg] = palette[type] || palette.info;
+      const el = document.createElement('div');
+      el.className = `${bg} ${fg} rounded-lg px-3.5 py-2.5 text-xs shadow-md fade-in font-medium`;
+      el.textContent = message;
+      $('toast-root').appendChild(el);
+      setTimeout(() => { el.style.opacity = '0'; el.style.transition = 'opacity .2s'; }, 2400);
+      setTimeout(() => el.remove(), 2700);
+    }
+
+    /* ---------- Tab Navigation ---------- */
+    function switchTab(tab) {
+      ['generator', 'deeplink', 'decoder', 'parser', 'apidocs'].forEach((t) => {
+        const el = $('tab-' + t);
+        if (el) el.classList.toggle('hidden', t !== tab);
+        const btn = $('tab-btn-' + t);
+        if (btn) {
+          btn.classList.toggle('active', t === tab);
+          if (t !== tab) { btn.classList.remove('bg-slate-900'); }
+        }
+      });
+      if (tab === 'deeplink') {
+        populateDemoBankBinSelect();
+        populateDemoAppSelect();
+        generateDemoDeeplink();
+      }
+    }
+
+    function switchDeeplinkSubTab(subtab) {
+      ['docs', 'demo'].forEach((s) => {
+        const el = $('deeplink-subtab-' + s);
+        if (el) el.classList.toggle('hidden', s !== subtab);
+        const btn = $('subtab-btn-' + s);
+        if (btn) {
+          btn.classList.toggle('active', s === subtab);
+        }
+      });
+    }
+
+    /* ---------- Installation Snippet Tab Switcher ---------- */
+    function switchInstallTab(tab) {
+      ['cli', 'pkg', 'pm'].forEach((t) => {
+        const panel = $('install-panel-' + t);
+        const btn = $('install-btn-' + t);
+        if (panel) panel.classList.toggle('hidden', t !== tab);
+        if (btn) {
+          btn.classList.toggle('active', t === tab);
+          if (t !== tab) {
+            btn.classList.remove('bg-slate-800', 'text-white');
+            btn.classList.add('text-slate-600');
+          }
+        }
+      });
+      const label = $('install-tab-label');
+      if (label) {
+        label.textContent = tab === 'cli' ? 'Terminal (.NET CLI)' : (tab === 'pkg' ? 'Project File (*.csproj)' : 'Package Manager Console');
+      }
+    }
+
+    function copyInstallSnippet() {
+      const activeTab = document.querySelector('.install-tab.active')?.id.replace('install-btn-', '') || 'cli';
+      const text = activeTab === 'cli'
+        ? 'dotnet add package VietQR.Core\ndotnet add package VietQR.Deeplink.Client'
+        : (activeTab === 'pkg'
+            ? '<PackageReference Include="VietQR.Core" Version="1.0.1" />\n<PackageReference Include="VietQR.Deeplink.Client" Version="1.0.0" />'
+            : 'Install-Package VietQR.Core\nInstall-Package VietQR.Deeplink.Client');
+      navigator.clipboard.writeText(text);
+      const btn = $('btn-copy-install');
+      if (btn) {
+        btn.innerHTML = '<svg class="w-3.5 h-3.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span class="text-emerald-400">Đã copy!</span>';
+        setTimeout(() => {
+          btn.innerHTML = '<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><span>Copy</span>';
+        }, 1800);
+      }
+      toast('Đã copy lệnh cài đặt NuGet.', 'success');
+    }
+
+    /* ---------- Code Snippets Tab Switcher ---------- */
+    const SNIPPET_LABELS = {
+      'csharp-sdk': 'CheckoutController.cs (C# .NET SDK)',
+      'csharp-http': 'HttpClient.cs (C# REST)',
+      'curl': 'Terminal (cURL)',
+      'js': 'app.js (JavaScript)',
+      'python': 'payment.py (Python)',
+      'php': 'checkout.php (PHP)'
+    };
+
+    function switchSnippetTab(lang) {
+      activeSnippetLang = lang;
+      ['csharp-sdk', 'csharp-http', 'curl', 'js', 'python', 'php'].forEach((l) => {
+        const block = $('snippet-' + l);
+        const btn = $('snippet-btn-' + l);
+        if (block) block.classList.toggle('hidden', l !== lang);
+        if (btn) {
+          btn.classList.toggle('active', l === lang);
+          if (l !== lang) {
+            btn.classList.remove('text-white');
+            btn.classList.add('text-slate-400');
+          } else {
+            btn.classList.remove('text-slate-400');
+            btn.classList.add('text-slate-200');
+          }
+        }
+      });
+      const label = $('snippet-file-label');
+      if (label && SNIPPET_LABELS[lang]) {
+        label.textContent = SNIPPET_LABELS[lang];
+      }
+    }
+
+    function copyActiveCodeSnippet() {
+      const codeEl = $('code-' + activeSnippetLang);
+      if (!codeEl) return;
+      navigator.clipboard.writeText(codeEl.innerText);
+      const btn = $('btn-copy-code');
+      if (btn) {
+        btn.innerHTML = '<svg class="w-3.5 h-3.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg><span class="text-emerald-400">Đã copy!</span>';
+        setTimeout(() => {
+          btn.innerHTML = '<svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><span>Copy</span>';
+        }, 1800);
+      }
+      toast('Đã copy đoạn mã mẫu ' + activeSnippetLang.toUpperCase() + '.', 'success');
+    }
+
+    /* ---------- Amount Format ---------- */
+    let amountTimer = null;
+    $('amount').addEventListener('input', () => {
+      clearTimeout(amountTimer);
+      amountTimer = setTimeout(() => {
+        const val = parseInt($('amount').value, 10) || 0;
+        $('amount-formatted').textContent = val > 0 ? new Intl.NumberFormat('vi-VN').format(val) + ' đ' : '';
+      }, 120);
+    });
+
+    document.querySelectorAll('.template-option input').forEach((r) => {
+      r.addEventListener('change', generateQR);
+    });
+
+    ['account-no', 'account-name', 'description'].forEach((id) => {
+      $(id).addEventListener('input', () => {
+        clearTimeout(generateTimer);
+        generateTimer = setTimeout(() => {
+          if ($('qr-form').checkValidity()) generateQR();
+        }, 500);
+      });
+    });
+
+    /* ---------- Logo Upload ---------- */
+    $('logo-input').addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+      if (file.size > 2 * 1024 * 1024) {
+        toast('Dung lượng logo không được vượt quá 2MB.', 'error');
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        customLogoDataUrl = ev.target.result;
+        $('logo-preview').src = customLogoDataUrl;
+        $('logo-preview').classList.remove('hidden');
+        $('logo-filename').textContent = file.name;
+        $('logo-remove').classList.remove('hidden');
+        generateQR();
+      };
+      reader.readAsDataURL(file);
+    });
+
+    function clearCustomLogo() {
+      customLogoDataUrl = '';
+      $('logo-preview').src = '';
+      $('logo-preview').classList.add('hidden');
+      $('logo-filename').textContent = 'Chọn file PNG, JPG làm logo trung tâm';
+      $('logo-remove').classList.add('hidden');
+      $('logo-input').value = '';
+      generateQR();
+    }
+
+    /* ---------- API Base Resolution ---------- */
+    function resolveApiBase() {
+      if (window.location.protocol === 'file:') return 'http://localhost:5187';
+      const port = window.location.port;
+      if (port && port !== '5187' && port !== '7185' && port !== '80' && port !== '443') {
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+          return 'http://localhost:5187';
+        }
+      }
+      return '';
+    }
+    const API_BASE = resolveApiBase();
+
+    function handleFetchError(err, prefix) {
+      if (err.message && err.message.includes('Failed to fetch')) {
+        toast(`${prefix}: Không kết nối được API tại ${API_BASE || 'localhost:5187'}. Vui lòng kiểm tra dịch vụ backend.`, 'error');
+      } else {
+        toast(`${prefix}: ${err.message}`, 'error');
+      }
+    }
+
+    /* ---------- Load Data ---------- */
+    async function loadDeeplinkApps() {
+      try {
+        const res = await fetch(API_BASE + '/api/v1/vietqr-core/deeplink/apps');
+        const json = await res.json();
+        if (json.code === '00' && Array.isArray(json.data) && json.data.length > 0) {
+          deeplinkApps = json.data;
+          deeplinkApps.forEach(a => {
+            if (pick(a, 'supportsAutofill') && pick(a, 'bin')) {
+              autofillBankBins.add(pick(a, 'bin'));
+            }
+          });
+        } else {
+          deeplinkApps = FALLBACK_DEEPLINK_APPS;
+        }
+      } catch {
+        deeplinkApps = FALLBACK_DEEPLINK_APPS;
+      }
+    }
+
+    async function loadBanks() {
+      try {
+        const res = await fetch(API_BASE + '/api/v1/vietqr-core/banks');
+        const json = await res.json();
+        if (json.code === '00' && Array.isArray(json.data) && json.data.length > 0) {
+          allBanks = json.data;
+        } else {
+          allBanks = [
+            { bin: '970422', code: 'MB', shortName: 'MBBank', name: 'Ngân hàng Quân Đội' },
+            { bin: '970423', code: 'TPB', shortName: 'TPBank', name: 'Tiên Phong' },
+            { bin: '970436', code: 'VCB', shortName: 'Vietcombank', name: 'Ngoại thương VN' },
+            { bin: '970407', code: 'TCB', shortName: 'Techcombank', name: 'Kỹ thương VN' },
+            { bin: '970415', code: 'CTG', shortName: 'VietinBank', name: 'Công thương VN' },
+            { bin: '970418', code: 'BIDV', shortName: 'BIDV', name: 'Đầu tư & Phát triển VN' },
+            { bin: '970405', code: 'VBA', shortName: 'Agribank', name: 'Nông nghiệp VN' },
+            { bin: '970432', code: 'VPB', shortName: 'VPBank', name: 'VN Thịnh Vượng' }
+          ];
+        }
+      } catch {
+        allBanks = [
+          { bin: '970422', code: 'MB', shortName: 'MBBank', name: 'Ngân hàng Quân Đội' },
+          { bin: '970423', code: 'TPB', shortName: 'TPBank', name: 'Tiên Phong' },
+          { bin: '970436', code: 'VCB', shortName: 'Vietcombank', name: 'Ngoại thương VN' },
+          { bin: '970407', code: 'TCB', shortName: 'Techcombank', name: 'Kỹ thương VN' },
+          { bin: '970415', code: 'CTG', shortName: 'VietinBank', name: 'Công thương VN' },
+          { bin: '970418', code: 'BIDV', shortName: 'BIDV', name: 'Đầu tư & Phát triển VN' },
+          { bin: '970405', code: 'VBA', shortName: 'Agribank', name: 'Nông nghiệp VN' },
+          { bin: '970432', code: 'VPB', shortName: 'VPBank', name: 'VN Thịnh Vượng' }
+        ];
+      }
+
+      populateBankSelect();
+      populateDemoBankBinSelect();
+      populateDemoAppSelect();
+    }
+
+    /* ---------- Populate Bank Select in Generator Tab ---------- */
+    function populateBankSelect() {
+      const select = $('bank-select');
+      const prevVal = select.value || '970422';
+      select.innerHTML = '';
+
+      allBanks.forEach((b) => {
+        const bin = pick(b, 'bin') ?? '';
+        const code = pick(b, 'code') ?? '';
+        const shortName = pick(b, 'shortName') ?? code;
+        const name = pick(b, 'name') ?? '';
+
+        const opt = document.createElement('option');
+        opt.value = bin;
+        opt.text = `${shortName} — ${name} (${bin})`;
+
+        if (bin === prevVal) opt.selected = true;
+        select.appendChild(opt);
+      });
+
+      if (!select.value && select.options.length > 0) {
+        select.selectedIndex = 0;
+      }
+    }
+
+    /* ---------- Populate Bank BIN Select in Demo Tab ---------- */
+    function populateDemoBankBinSelect() {
+      const select = $('demo-bank-bin');
+      if (!select) return;
+      const prevVal = select.value || '970422';
+      select.innerHTML = '';
+
+      allBanks.forEach(b => {
+        const bin = pick(b, 'bin') ?? '';
+        const shortName = pick(b, 'shortName') ?? pick(b, 'code') ?? '';
+        const opt = document.createElement('option');
+        opt.value = bin;
+        opt.text = `${shortName} (${bin})`;
+        if (bin === prevVal) opt.selected = true;
+        select.appendChild(opt);
+      });
+    }
+
+    /* ---------- Populate App Select in Demo Tab ---------- */
+    function populateDemoAppSelect() {
+      const select = $('demo-app-select');
+      if (!select) return;
+      const prevVal = select.value || 'MB';
+      select.innerHTML = '';
+
+      const apps = deeplinkApps.length > 0 ? deeplinkApps : FALLBACK_DEEPLINK_APPS;
+
+      apps.forEach(a => {
+        const appCode = pick(a, 'appCode');
+        const shortName = pick(a, 'shortName') || appCode;
+        const appName = pick(a, 'appName') || shortName;
+        const bin = pick(a, 'bin');
+        const isAutofill = pick(a, 'supportsAutofill') || autofillBankBins.has(bin);
+
+        const opt = document.createElement('option');
+        opt.value = appCode;
+        opt.text = isAutofill
+          ? `${shortName} — ${appName} (Tự điền)`
+          : `${shortName} — ${appName}`;
+
+        if (appCode === prevVal) opt.selected = true;
+        select.appendChild(opt);
+      });
+
+      if (!select.value && select.options.length > 0) {
+        select.selectedIndex = 0;
+      }
+
+      onDemoAppChange();
+    }
+
+    function onDemoAppChange() {
+      const select = $('demo-app-select');
+      if (!select) return;
+      const appCode = select.value;
+      const apps = deeplinkApps.length > 0 ? deeplinkApps : FALLBACK_DEEPLINK_APPS;
+      const app = apps.find(a => pick(a, 'appCode') === appCode);
+      const isAutofill = app ? (pick(app, 'supportsAutofill') || autofillBankBins.has(pick(app, 'bin'))) : false;
+
+      const badge = $('demo-autofill-badge');
+      if (badge) {
+        if (isAutofill) {
+          badge.className = 'text-[11px] font-medium text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200';
+          badge.textContent = 'Hỗ trợ tự điền';
+        } else {
+          badge.className = 'text-[11px] font-medium text-slate-600 bg-slate-100 px-2 py-0.5 rounded border border-slate-200';
+          badge.textContent = 'Mở quét QR';
+        }
+      }
+    }
+
+    /* ---------- Sync inputs from Generator to Demo ---------- */
+    function syncDataFromGenerator() {
+      const bankSelect = $('bank-select');
+      const accountNo = $('account-no');
+      const amount = $('amount');
+      const desc = $('description');
+
+      if ($('demo-bank-bin')) $('demo-bank-bin').value = bankSelect.value;
+      if ($('demo-account-no')) $('demo-account-no').value = accountNo.value;
+      if ($('demo-amount')) $('demo-amount').value = amount.value;
+      if ($('demo-desc')) $('demo-desc').value = desc.value;
+
+      const app = deeplinkApps.find(a => pick(a, 'bin') === bankSelect.value);
+      if (app && $('demo-app-select')) {
+        $('demo-app-select').value = pick(app, 'appCode');
+        onDemoAppChange();
+      }
+
+      toast('Đã đồng bộ thông tin từ Tab Tạo mã QR.', 'info');
+      generateDemoDeeplink();
+    }
+
+    /* ---------- Generate Demo Deeplink & QR ---------- */
+    async function generateDemoDeeplink() {
+      const appCode = $('demo-app-select') ? $('demo-app-select').value : 'MB';
+      const bankBin = $('demo-bank-bin') ? $('demo-bank-bin').value : '970422';
+      const accountNo = $('demo-account-no') ? $('demo-account-no').value.trim() : '056789799999';
+      const amount = $('demo-amount') ? $('demo-amount').value.trim() : '50000';
+      const desc = $('demo-desc') ? $('demo-desc').value.trim() : 'thanh toan don hang';
+
+      let qrPayloadToUse = '';
+      try {
+        const resGen = await fetch(API_BASE + '/api/v1/vietqr-core/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            bankBin: bankBin,
+            accountNo: accountNo,
+            amount: amount,
+            description: desc,
+            template: 'compact',
+            format: 'png',
+            serviceType: 'account'
+          })
+        });
+        const genJson = await resGen.json();
+        if (genJson.code === '00' && genJson.data) {
+          qrPayloadToUse = pick(genJson.data, 'QrCode');
+        }
+      } catch {
+        // ignore
+      }
+
+      if (!qrPayloadToUse) {
+        qrPayloadToUse = currentPayload || "00020101021238560010A0000007270126000697042201120567897999990208QRIBFTTA53037045405500005802VN62230819thanh toan don hang6304B18D";
+      }
+
+      let intentUrl = '';
+      try {
+        const res = await fetch(API_BASE + '/api/v1/vietqr-core/deeplink/intents', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            appCode: appCode,
+            qrCode: qrPayloadToUse
+          })
+        });
+        const json = await res.json();
+        if (json.code === '00' && json.data) {
+          intentUrl = pick(json.data, 'url');
+        }
+      } catch {
+        // Fallback demo URL
+      }
+
+      if (!intentUrl) {
+        const origin = window.location.origin;
+        intentUrl = `${origin}/p/demo-${appCode.toLowerCase()}?ba=${accountNo}&am=${amount}`;
+      }
+
+      if ($('demo-result-url')) $('demo-result-url').value = intentUrl;
+      if ($('demo-open-btn')) $('demo-open-btn').href = intentUrl;
+
+      renderDemoQr(intentUrl);
+    }
+
+    function renderDemoQr(url) {
+      const container = $('demo-qr-container');
+      if (!container) return;
+      container.innerHTML = '';
+
+      if (typeof QRCode !== 'undefined') {
+        try {
+          new QRCode(container, {
+            text: url,
+            width: 156,
+            height: 156,
+            colorDark: '#0f172a',
+            colorLight: '#ffffff',
+            correctLevel: QRCode.CorrectLevel.M
+          });
+          return;
+        } catch {
+          // fallback
+        }
+      }
+
+      const img = document.createElement('img');
+      img.src = `https://api.qrserver.com/v1/create-qr-code/?size=156x156&data=${encodeURIComponent(url)}`;
+      img.alt = 'QR Code';
+      img.className = 'w-full h-full object-contain';
+      container.appendChild(img);
+    }
+
+    function copyDemoUrl() {
+      const input = $('demo-result-url');
+      if (!input || !input.value) return;
+      navigator.clipboard.writeText(input.value);
+      toast('Đã sao chép đường dẫn Deeplink.', 'success');
+    }
+
+    /* ---------- Generate Main QR in Generator Tab ---------- */
+    async function generateQR() {
+      const spinner = $('loading-spinner');
+      spinner.classList.remove('hidden');
+      spinner.classList.add('grid');
+
+      const body = {
+        bankBin: $('bank-select').value,
+        accountNo: $('account-no').value.trim(),
+        accountName: $('account-name').value.trim() || undefined,
+        amount: $('amount').value.trim(),
+        description: $('description').value.trim(),
+        template: document.querySelector('input[name="template"]:checked').value,
+        format: $('format').value,
+        serviceType: $('service-type').value,
+      };
+      if (customLogoDataUrl) body.customLogoBase64 = customLogoDataUrl;
+      currentExtension = body.format;
+
+      try {
+        const res = await fetch(API_BASE + '/api/v1/vietqr-core/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        const json = await res.json();
+        if (json.code === '00' && json.data) {
+          currentPayload = pick(json.data, 'QrCode') ?? '';
+          currentDataUrl = pick(json.data, 'QrDataURL') ?? '';
+          $('qr-preview-img').src = currentDataUrl;
+          $('payload-text').textContent = currentPayload;
+          $('payload-length').textContent = currentPayload ? currentPayload.length + ' ký tự' : '';
+        } else {
+          toast(json.desc || 'Không tạo được mã VietQR.', 'error');
+        }
+      } catch (err) {
+        handleFetchError(err, 'Lỗi gọi API tạo mã');
+      } finally {
+        spinner.classList.add('hidden');
+        spinner.classList.remove('grid');
+      }
+    }
+
+    /* ---------- Download & Copy ---------- */
+    function downloadImage() {
+      if (!currentDataUrl) return;
+      const a = document.createElement('a');
+      a.href = currentDataUrl;
+      a.download = 'vietqr-payment.' + (currentExtension === 'svg' ? 'svg' : currentExtension);
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+
+    function copyPayload() {
+      if (!currentPayload) return;
+      navigator.clipboard.writeText(currentPayload);
+      toast('Đã sao chép chuỗi EMVCo Payload.', 'success');
+    }
+
+    function copyDataUrl() {
+      if (!currentDataUrl) return;
+      navigator.clipboard.writeText(currentDataUrl);
+      toast('Đã sao chép Data URL (Base64).', 'success');
+    }
+
+    /* ---------- Decoder ---------- */
+    const dropZone = $('drop-zone');
+    const fileInput = $('file-input');
+
+    dropZone.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) decodeFile(e.target.files[0]);
+    });
+    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('border-slate-500', 'bg-slate-100/50'); });
+    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('border-slate-500', 'bg-slate-100/50'));
+    dropZone.addEventListener('drop', (e) => {
+      e.preventDefault();
+      dropZone.classList.remove('border-slate-500', 'bg-slate-100/50');
+      if (e.dataTransfer.files.length > 0) decodeFile(e.dataTransfer.files[0]);
+    });
+
+    window.addEventListener('paste', (e) => {
+      for (const item of e.clipboardData.items) {
+        if (item.type.indexOf('image') !== -1) {
+          const file = item.getAsFile();
+          if (file) { switchTab('decoder'); decodeFile(file); break; }
+        }
+      }
+    });
+
+    async function decodeFile(file) {
+      $('decode-status').classList.remove('hidden');
+      $('decode-result').classList.add('hidden');
+
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        const res = await fetch(API_BASE + '/api/v1/vietqr-core/decode', { method: 'POST', body: formData });
+        const json = await res.json();
+
+        if (json.code === '00' && json.data) {
+          const d = json.data;
+          const bankInfo = pick(d, 'BankInfo');
+          const bankBin = pick(d, 'BankBin') ?? '';
+          const shortName = pick(bankInfo, 'ShortName');
+          const amount = pick(d, 'Amount');
+          const serviceType = pick(d, 'ServiceType', 0);
+          const qrType = pick(d, 'QrType', 0);
+          const crcOk = pick(d, 'IsValidCrc', false);
+
+          const crcBadge = $('dec-crc');
+          crcBadge.textContent = crcOk ? 'CRC16 hợp lệ' : 'CRC16 KHÔNG hợp lệ';
+          crcBadge.className = 'text-[11px] font-medium px-2.5 py-1 rounded-full ' +
+            (crcOk ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 'bg-rose-100 text-rose-700 border border-rose-200');
+
+          $('dec-qrtype').textContent = Number(qrType) === 1 ? 'Mã động' : 'Mã tĩnh';
+          $('dec-bank').textContent = shortName ? `${shortName} (${bankBin})` : bankBin;
+          $('dec-account').textContent = pick(d, 'AccountNo') ?? '—';
+          $('dec-amount').textContent = (amount && Number(amount) > 0)
+            ? new Intl.NumberFormat('vi-VN').format(Number(amount)) + ' đ'
+            : 'Mã tĩnh — không kèm số tiền';
+          $('dec-desc').textContent = pick(d, 'Description') || 'Không có';
+          $('dec-service').textContent = Number(serviceType) === 1 ? 'Chuyển qua Thẻ (QRIBFTTC)' : 'Chuyển qua Tài khoản (QRIBFTTA)';
+          $('dec-bill').textContent = pick(d, 'BillNumber') || '—';
+          $('dec-raw').textContent = pick(d, 'RawPayload') ?? '';
+
+          $('decode-result').classList.remove('hidden');
+          $('decode-result').classList.add('fade-in');
+        } else {
+          toast('Không đọc được mã VietQR trong ảnh này: ' + (json.desc || ''), 'error');
+        }
+      } catch (err) {
+        handleFetchError(err, 'Lỗi giải mã');
+      } finally {
+        $('decode-status').classList.add('hidden');
+      }
+    }
+
+    /* ---------- Parser ---------- */
+    async function parsePayload() {
+      const raw = $('parse-input').value.trim();
+      if (!raw) { toast('Vui lòng dán chuỗi EMVCo trước.', 'error'); return; }
+
+      try {
+        const res = await fetch(API_BASE + '/api/v1/vietqr-core/parse', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ qrCode: raw }),
+        });
+        const json = await res.json();
+        if (json.code === '00' && json.data) {
+          const d = json.data;
+          $('parse-json').textContent = JSON.stringify(d, null, 2);
+
+          const meta = $('parse-meta');
+          meta.innerHTML = '';
+          const chips = [
+            ['Ngân hàng', (pick(pick(d, 'BankInfo'), 'ShortName') ?? ''), 'bg-slate-100 text-slate-800 border border-slate-200'],
+            ['Tài khoản', (pick(d, 'AccountNo') ?? ''), 'bg-slate-100 text-slate-700 mono border border-slate-200'],
+            ['Loại dịch vụ', (Number(pick(d, 'ServiceType', 0)) === 1 ? 'Thẻ (QRIBFTTC)' : 'Tài khoản (QRIBFTTA)'), 'bg-slate-100 text-slate-700 border border-slate-200'],
+          ];
+          const amount = pick(d, 'Amount');
+          if (amount && Number(amount) > 0) {
+            chips.push(['Số tiền', new Intl.NumberFormat('vi-VN').format(Number(amount)) + ' đ', 'bg-emerald-50 text-emerald-800 border border-emerald-200']);
+          }
+          chips.forEach(([label, value, cls]) => {
+            const badge = document.createElement('span');
+            badge.className = 'text-[11px] font-medium px-2.5 py-1 rounded-full ' + cls;
+            badge.textContent = `${label}: ${value}`;
+            meta.appendChild(badge);
+          });
+
+          const tags = pick(d, 'RawTags') ?? {};
+          const tbody = $('parse-tags');
+          tbody.innerHTML = '';
+          Object.keys(tags).forEach((tag) => {
+            const value = String(tags[tag]);
+            const row = tbody.insertRow();
+            row.className = 'hover:bg-slate-50';
+            row.insertCell().outerHTML = `<td class="px-3 py-1.5 mono font-semibold text-slate-900">${tag}</td>`;
+            row.insertCell().outerHTML = `<td class="px-3 py-1.5 mono text-slate-400">${value.length}</td>`;
+            const cell = row.insertCell();
+            cell.className = 'px-3 py-1.5 mono break-all';
+            cell.textContent = value;
+          });
+
+          $('parse-result').classList.remove('hidden');
+          $('parse-result').classList.add('fade-in');
+        } else {
+          toast(json.desc || 'Chuỗi không đúng chuẩn EMVCo.', 'error');
+        }
+      } catch (err) {
+        handleFetchError(err, 'Lỗi phân tích');
+      }
+    }
+
+    /* ---------- Init ---------- */
+    window.addEventListener('DOMContentLoaded', async () => {
+      await loadDeeplinkApps();
+      await loadBanks();
+      generateQR();
+    });
+  </script>
+</body>
+</html>

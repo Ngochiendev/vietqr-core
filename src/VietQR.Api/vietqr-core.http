@@ -1,57 +1,257 @@
 @HostAddress = http://localhost:5187
 
-# HƯỚNG DẪN TEST RENDER ĐỘNG & XEM TRƯỚC 76 NGÂN HÀNG (TEMPLATE: PRINT):
+# ============================================================================
+#  VIETQR CORE API — BỘ REQUEST THAM CHIẾU (REST Client / Postman Import)
 #
-# 1. Đổi STK / Tên / Số tiền thật để test quét tại:
-#    tests/vietqr-core.Tests/QrOnlyGenerationTests.cs (đầu hàm GenerateAll76BanksPrintCards)
+#  Cả file này có thể import trực tiếp vào Postman (File > Import > chọn file .http)
+#  Hoặc chạy từng request bằng VS Code REST Client / Rider HTTP Client.
 #
-# 2. Chạy lệnh tự động render QR động & gán thẳng vào file HTML (Base64, không tốn cache):
-#    dotnet test tests/vietqr-core.Tests --filter GenerateAll76BanksPrintCards
+#  Chuỗi phản hồi chuẩn của mọi endpoint JSON:
+#      { "code": "00", "desc": "success", "data": { ... } }
+#    - code "00" : thành công
+#    - code "01" — "07" : lỗi nghiệp vụ (thiếu tham số, sai BIN, sai CRC…)
+#    - code "99" : lỗi hệ thống
 #
-# 3. Lệnh mở xem trước trên trình duyệt (macOS) để test quét bằng app ngân hàng:
-#    open tests/all_banks_gallery.html
+#  Tài liệu Swagger UI đầy đủ: {{HostAddress}}/swagger
+# ============================================================================
 
 
-### 1. Tạo mã VietQR Mẫu Thẻ Đầy Đủ (template: compact - mặc định)
+### ──────────────────────────────────────────────────────────────────────────
+###  1. SINH MÃ VIETQR — GET /api/v1/vietqr-core/generate
+###
+###  Tham số bắt buộc: bankBin (6 chữ số) · accountNo (≤25) · amount (>0, ≤13 số) · description (≤95)
+###  Tùy chọn:        template (compact|qr_only|print) · serviceType (account|card)
+###                    accountName · billNumber · format (png|webp|svg) · size (100–2000) · customLogo (base64)
+###  Trả về: { qrCode, qrDataURL } — ảnh Base64 Data URL nhúng thẳng vào <img>
+###
+###  Cache 1 giờ · Rate limit 30 req/s/IP (vượt → HTTP 429)
+### ──────────────────────────────────────────────────────────────────────────
+
+### 1a. Mẫu thẻ compact (mặc định) — chuyển tới TÀI KHOẢN QRIBFTTA
 GET {{HostAddress}}/api/v1/vietqr-core/generate?bankBin=970422&accountNo=056789799999&amount=50000&description=thanh toan hoc phi&template=compact
 Accept: application/json
 
-### 2. Tạo mã VietQR Mẫu Tinh Gọn Chỉ Mã QR (template: qr_only)
+### 1b. Mẫu thẻ qr_only — chỉ mã QR vuông 500px
 GET {{HostAddress}}/api/v1/vietqr-core/generate?bankBin=970422&accountNo=056789799999&amount=50000&description=thanh toan hoc phi&template=qr_only
 Accept: application/json
 
-### 3. Tạo mã VietQR Mẫu In Đầy Đủ Thông Tin (template: print)
-GET {{HostAddress}}/api/v1/vietqr-core/generate?bankBin=970415&accountNo=113366668888&accountName=QUY%20VAC%20XIN%20COVID&amount=790000&description=dong%20qop%20quy%20vac%20xin&template=print
+### 1c. Mẫu thẻ print — in hóa đơn đầy đủ (VietinBank, kèm tên chủ TK)
+GET {{HostAddress}}/api/v1/vietqr-core/generate?bankBin=970415&accountNo=113366668888&accountName=QUY VAC XIN COVID&amount=790000&description=dong gop quy vac xin&template=print
 Accept: application/json
 
-### 3. Tạo mã VietQR thành công: Sacombank (Mã BIN: 970403)
-GET {{HostAddress}}/api/v1/vietqr-core/generate?bankBin=970403&accountNo=056789799999&amount=50000&description=thanh toan hoc phi
+### 1d. Chuyển tới THẺ ATM / NAPAS (serviceType=card → QRIBFTTC)
+GET {{HostAddress}}/api/v1/vietqr-core/generate?bankBin=970422&accountNo=9704222028493997&amount=1000&description=chuyen vao the MB&serviceType=card
 Accept: application/json
 
-### 3. Thử nghiệm BÁO LỖI (Code 01): Thiếu tham số bắt buộc
+### 1e. Xuất WebP (siêu nhẹ) + chuyển tĩnh bằng cách… amount vẫn bắt buộc — ví dụ format=webp
+GET {{HostAddress}}/api/v1/vietqr-core/generate?bankBin=970403&accountNo=056789799999&amount=250000&description=dat coc phong&format=webp
+Accept: application/json
+
+### 1f. Xuất SVG (vector nét vô hạn)
+GET {{HostAddress}}/api/v1/vietqr-core/generate?bankBin=970436&accountNo=0011001234567&amount=100000&description=thanh toan hoa don&format=svg
+Accept: application/json
+
+### 1g. BÁO LỖI code 01 — thiếu tham số bắt buộc
 GET {{HostAddress}}/api/v1/vietqr-core/generate?bankBin=970422&amount=50000
 Accept: application/json
 
-### 4. Thử nghiệm BÁO LỖI (Code 02): Số tiền không hợp lệ
+### 1h. BÁO LỖI code 02 — amount phải là số nguyên dương
 GET {{HostAddress}}/api/v1/vietqr-core/generate?bankBin=970422&accountNo=056789799999&amount=0&description=thanh toan hoc phi
 Accept: application/json
 
-### 5. Thử nghiệm BÁO LỖI (Code 03): Truyền chữ viết tắt 'MB' thay vì đúng 6 chữ số
+### 1i. BÁO LỖI code 03 — bankBin phải đúng 6 chữ số
 GET {{HostAddress}}/api/v1/vietqr-core/generate?bankBin=MB&accountNo=056789799999&amount=50000&description=thanh toan hoc phi
 Accept: application/json
 
-### 6. Thử nghiệm BÁO LỖI (Code 04): Mã BIN 6 số nhưng không tồn tại trong hệ thống
+### 1j. BÁO LỖI code 04 — BIN 999999 không tồn tại trong danh mục
 GET {{HostAddress}}/api/v1/vietqr-core/generate?bankBin=999999&accountNo=056789799999&amount=50000&description=thanh toan hoc phi
 Accept: application/json
 
-### 7. Lấy danh sách 76 ngân hàng từ Catalog bộ nhớ
+### 1k. BÁO LỖI code 05 — template không hợp lệ
+GET {{HostAddress}}/api/v1/vietqr-core/generate?bankBin=970422&accountNo=056789799999&amount=50000&description=thanh toan hoc phi&template=banner
+Accept: application/json
+
+
+### ──────────────────────────────────────────────────────────────────────────
+###  2. SINH MÃ VIETQR — POST /api/v1/vietqr-core/generate
+###
+###  Cùng tham số ở trên nhưng gửi qua JSON body — phù hợp khi cần gửi
+###  customLogoBase64 (logo tâm QR) kích thước lớn mà không lộ trên URL log.
+### ──────────────────────────────────────────────────────────────────────────
+
+### 2a. POST generate — template compact
+POST {{HostAddress}}/api/v1/vietqr-core/generate
+Content-Type: application/json
+Accept: application/json
+
+{
+  "bankBin": "970422",
+  "accountNo": "056789799999",
+  "amount": "50000",
+  "description": "thanh toan don hang",
+  "accountName": "NGUYEN VAN A",
+  "template": "compact",
+  "serviceType": "account",
+  "format": "png",
+  "billNumber": "HD20261030"
+}
+
+### 2b. POST generate — nhúng LOGO RIÊNG ở tâm QR (customLogoBase64 + centerLogoRatio)
+#     centerLogoRatio chỉ nhận 0.05–0.35, ngoài khoảng sẽ dùng 0.20
+POST {{HostAddress}}/api/v1/vietqr-core/generate
+Content-Type: application/json
+Accept: application/json
+
+{
+  "bankBin": "970422",
+  "accountNo": "056789799999",
+  "amount": "50000",
+  "description": "thanh toan don hang",
+  "template": "qr_only",
+  "customLogoBase64": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII=",
+  "centerLogoRatio": 0.2
+}
+
+
+### ──────────────────────────────────────────────────────────────────────────
+###  3. XUẤT ẢNH TRỰC TIẾP — GET /api/v1/vietqr-core/image
+###
+###  Tham số giống /generate, nhưng trả về BINARY STREAM ảnh
+###  (image/png | image/webp | image/svg+xml) — nhúng thẳng được vào <img src>.
+### ──────────────────────────────────────────────────────────────────────────
+
+### 3a. Tải ảnh PNG thẻ compact
+GET {{HostAddress}}/api/v1/vietqr-core/image?bankBin=970422&accountNo=056789799999&amount=50000&description=thanh toan hoc phi&template=compact&format=png
+
+### 3b. Nhúng `<img>` demo: <img src="/api/v1/vietqr-core/image?bankBin=970422&accountNo=056789799999&amount=50000&description=thanh toan">
+
+
+### ──────────────────────────────────────────────────────────────────────────
+###  4. GIẢI MÃ QR TỪ ẢNH — POST /api/v1/vietqr-core/decode
+###
+###  2 cách gửi ảnh:
+###   (i)   multipart/form-data  → trường "file"
+###   (ii)  application/json     → trường "imageBase64" (Base64 hoặc Data URL)
+###  Trả về VietQrInfo: bankBin, bankInfo, accountNo, serviceType (0=TK,1=Thẻ),
+###  amount, description, billNumber, isValidCrc (CRC16), rawTags, rawPayload…
+### ──────────────────────────────────────────────────────────────────────────
+
+### 4a. Giải mã từ file ảnh upload
+POST {{HostAddress}}/api/v1/vietqr-core/decode
+Content-Type: multipart/form-data; boundary=Boundary-1234
+
+--Boundary-1234
+Content-Disposition: form-data; name="file"; filename="qr_scan.png"
+Content-Type: image/png
+
+< ../../docs/image/compact.png
+--Boundary-1234--
+
+### 4b. Giải mã từ Base64 (Data URL cũng được chấp nhận — giá trị dưới đây chỉ là placeholder)
+POST {{HostAddress}}/api/v1/vietqr-core/decode
+Content-Type: application/json
+Accept: application/json
+
+{
+  "imageBase64": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+ip1sAAAAASUVORK5CYII="
+}
+
+
+### ──────────────────────────────────────────────────────────────────────────
+###  5. PHÂN TÍCH CHUỖI EMVCO — POST /api/v1/vietqr-core/parse
+###
+###  Bóc tách chuỗi text mã QR (000201…) thành VietQrInfo chi tiết từng Tag TLV.
+###  Parser chạy strict CRC: chuỗi có CRC sai / thiếu Tag 63 → lỗi code 07.
+### ──────────────────────────────────────────────────────────────────────────
+
+### 5a. Phân tích chuỗi hợp lệ
+POST {{HostAddress}}/api/v1/vietqr-core/parse
+Content-Type: application/json
+Accept: application/json
+
+{
+  "qrCode": "00020101021238560010A0000007270126000697042201120567897999990208QRIBFTTA53037045405500005802VN62140810thanh toan63045083"
+}
+
+### 5b. BÁO LỖI code 07 — CRC16 không khớp nội dung
+POST {{HostAddress}}/api/v1/vietqr-core/parse
+Content-Type: application/json
+Accept: application/json
+
+{
+  "qrCode": "00020101021238560010A0000007270126000697042201120567897999990208QRIBFTTA53037045405500005802VN62140810thanh toan6304A1B2"
+}
+
+### 5c. BÁO LỖI code 01 — chuỗi rỗng
+POST {{HostAddress}}/api/v1/vietqr-core/parse
+Content-Type: application/json
+Accept: application/json
+
+{
+  "qrCode": ""
+}
+
+
+### ──────────────────────────────────────────────────────────────────────────
+###  6. DANH MỤC NGÂN HÀNG — GET /api/v1/vietqr-core/banks
+###
+###  Danh mục 76+ ngân hàng nhúng sẵn trong DLL (0 network).
+###  Mỗi bản ghi: { bin, code, shortName, name, logo }
+### ──────────────────────────────────────────────────────────────────────────
+
+### 6a. Toàn bộ danh mục
 GET {{HostAddress}}/api/v1/vietqr-core/banks
 Accept: application/json
 
-### 8. Tìm ngân hàng theo mã BIN hoặc mã viết tắt
+### 6b. Tra cứu theo BIN
 GET {{HostAddress}}/api/v1/vietqr-core/banks/970422
 Accept: application/json
 
-### 9. Kiểm tra hiệu năng xử lý (Diagnostics CRC16 & SkiaSharp)
-GET {{HostAddress}}/api/v1/vietqr-core/diagnostics
+### 6c. Tra cứu theo mã viết tắt (case-insensitive: MB, VCB, TCB…)
+GET {{HostAddress}}/api/v1/vietqr-core/banks/MB
 Accept: application/json
+
+### 6d. BÁO LỖI code 04 — không tồn tại (HTTP 404)
+GET {{HostAddress}}/api/v1/vietqr-core/banks/999999
+Accept: application/json
+
+### 6e. Danh sách 44 ứng dụng ngân hàng & ví điện tử hỗ trợ mở nhanh (không lộ Scheme)
+GET {{HostAddress}}/api/v1/vietqr-core/banks/apps
+Accept: application/json
+
+### 6f. Điều hướng mở ứng dụng trên iPhone (giả lập User-Agent iOS → HTTP 302 Redirect)
+GET {{HostAddress}}/api/v1/vietqr-core/banks/open/VCB
+User-Agent: Mozilla/5.0 (iPhone; CPU iPhone OS 17_5 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.5 Mobile/15E148 Safari/604.1
+
+### 6g. Điều hướng mở ứng dụng trên Android (giả lập User-Agent Android → HTTP 302 Redirect)
+GET {{HostAddress}}/api/v1/vietqr-core/banks/open/970422
+User-Agent: Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Mobile Safari/537.36
+
+
+### ──────────────────────────────────────────────────────────────────────────
+###  7. HỆ THỐNG — HEALTH, SWAGGER, DIAGNOSTICS
+### ──────────────────────────────────────────────────────────────────────────
+
+### 7a. Health checks (chuẩn ASP.NET)
+GET {{HostAddress}}/health
+
+### 7b. Swagger UI — mở trên trình duyệt
+#     {{HostAddress}}/swagger
+
+### 7c. Gallery 76 thẻ in (chỉ mở ở Development hoặc Diagnostics:Enabled=true)
+GET {{HostAddress}}/api/v1/vietqr-core/gallery
+
+### 7d. Self-test CRC16 / EMVCo / SkiaSharp / thư mục dữ liệu
+GET {{HostAddress}}/api/v1/vietqr-core/self-test
+
+
+### ──────────────────────────────────────────────────────────────────────────
+###  8. HƯỚNG DẪN RENDER TOÀN BỘ 76 NGAN HANG (TEMPLATE: PRINT) ĐỂ TEST QUÉT
+###
+###  1) Đổi STK / Tên / Số tiền thật để test quét tại:
+###     tests/vietqr-core.Tests/QrOnlyGenerationTests.cs (đầu hàm GenerateAll76BanksPrintCards)
+###  2) Chạy lệnh tự động render QR động & gán thẳng vào file HTML (Base64, không tốn cache):
+###     dotnet test tests/vietqr-core.Tests --filter GenerateAll76BanksPrintCards
+###  3) Lệnh mở xem trước trên trình duyệt (macOS) để test quét bằng app ngân hàng:
+###     open tests/all_banks_gallery.html
+### ──────────────────────────────────────────────────────────────────────────

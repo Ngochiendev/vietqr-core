@@ -3,6 +3,7 @@ WORKDIR /app
 
 COPY ["Directory.Build.props", "./"]
 COPY ["src/VietQR.Core/VietQR.Core.csproj", "src/VietQR.Core/"]
+COPY ["src/VietQR.Deeplink.Client/VietQR.Deeplink.Client.csproj", "src/VietQR.Deeplink.Client/"]
 COPY ["src/VietQR.Api/VietQR.Api.csproj", "src/VietQR.Api/"]
 
 RUN dotnet restore "src/VietQR.Api/VietQR.Api.csproj"

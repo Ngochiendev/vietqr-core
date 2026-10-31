@@ -5,12 +5,11 @@ using VietQR.Core;
 namespace VietQR.Api.Controllers;
 
 /// <summary>
-/// API chẩn đoán, kiểm thử hệ thống và benchmark hiệu năng trên server IIS.
+/// API chẩn đoán và benchmark hiệu năng của dịch vụ.
 /// </summary>
 [ApiController]
 [AllowAnonymous]
 [Route("api/v1/vietqr-core")]
-[Route("api/v1/diagnostics")]
 [Produces("application/json")]
 public class DiagnosticsController : ControllerBase
 {
@@ -49,7 +48,7 @@ public class DiagnosticsController : ControllerBase
         NotFound(new { code = "404", desc = "Chức năng chẩn đoán chỉ khả dụng ở môi trường Development hoặc khi được cấu hình bật." });
 
     /// <summary>
-    /// Chuyển hướng nhanh tới Thư viện 76 thẻ in VietQR Print.
+    /// Chuyển hướng tới gallery tổng hợp 76 thẻ in VietQR (all_banks_gallery.html).
     /// </summary>
     [HttpGet("gallery")]
     [ProducesResponseType(StatusCodes.Status302Found)]
@@ -63,13 +62,11 @@ public class DiagnosticsController : ControllerBase
     }
 
     /// <summary>
-    /// Kiểm thử chất lượng toàn diện (Self-Test &amp; Quality Diagnostic) trực tiếp trên máy chủ IIS.
+    /// Chạy bộ kiểm thử chất lượng ngay trên máy chủ: thuật toán CRC16 (Mục 5.2.15 NAPAS),
+    /// định dạng chuỗi EMVCo và render SkiaSharp 3 template.
     /// </summary>
-    /// <remarks>
-    /// Kiểm thử tự động thuật toán CRC16, định dạng chuỗi EMVCo, engine SkiaSharp và quyền truy cập thư mục dữ liệu.
-    /// </remarks>
-    /// <response code="200">Hệ thống vượt qua 100% các bài kiểm thử chất lượng trên IIS Server.</response>
-    /// <response code="500">Phát hiện lỗi chất lượng hoặc cấu hình server IIS.</response>
+    /// <response code="200">Toàn bộ bài kiểm tra đạt.</response>
+    /// <response code="500">Có bài kiểm tra thất bại hoặc cấu hình server sai.</response>
     [HttpGet("self-test")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -179,8 +176,12 @@ public class DiagnosticsController : ControllerBase
     }
 
     /// <summary>
-    /// Kiểm thử hiệu năng chịu tải kịch bản hàng loạt: 2.000 đến 10.000 mã QR học phí (Stress &amp; Load Test).
+    /// Benchmark render mã QR song song, đo throughput và RAM tiêu thụ.
     /// </summary>
+    /// <param name="testRequests">Số request benchmark, trong khoảng 1-1000 (mặc định 2000).</param>
+    /// <param name="template">Mẫu thẻ: compact, qr_only (mặc định), print hoặc emv_only (chỉ tạo chuỗi EMV).</param>
+    /// <param name="totalSchools">Số trường để sinh dữ liệu (mặc định 1000).</param>
+    /// <param name="studentsPerSchool">Số học sinh mỗi trường (mặc định 1000).</param>
     [HttpGet("benchmark-school-test")]
     [HttpPost("benchmark-school-test")]
     [ProducesResponseType(StatusCodes.Status200OK)]
