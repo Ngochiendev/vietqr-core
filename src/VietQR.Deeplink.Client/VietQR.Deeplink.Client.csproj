@@ -12,7 +12,7 @@
     <IsPackable>true</IsPackable>
     <PackageId>VietQR.Deeplink.Client</PackageId>
     <Title>VietQR.Deeplink.Client - Thư viện client gọi API mở app ngân hàng VietQR (.NET)</Title>
-    <Version>1.0.0</Version>
+    <Version>1.0.1</Version>
     <Authors>Hien Dev</Authors>
     <Company>Ngochiendev</Company>
     <Description>Thư viện client C# (.NET) kết nối dịch vụ VietQR Deeplink để lấy link mở ứng dụng ngân hàng khi thanh toán, hỗ trợ Dependency Injection trong ASP.NET Core.</Description>
@@ -22,6 +22,7 @@
     <RepositoryType>git</RepositoryType>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageProjectUrl>https://github.com/Ngochiendev/vietqr-core</PackageProjectUrl>
+    <PackageIcon>vietqr_icon.png</PackageIcon>
     <PackageReleaseNotes>See https://github.com/Ngochiendev/vietqr-core/releases for the latest release notes.</PackageReleaseNotes>
 
     <!-- SourceLink, Symbols & Deterministic Builds -->
@@ -37,6 +38,7 @@
 
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="\" />
+    <None Include="vietqr_icon.png" Pack="true" PackagePath="\" />
   </ItemGroup>
 
   <ItemGroup>
