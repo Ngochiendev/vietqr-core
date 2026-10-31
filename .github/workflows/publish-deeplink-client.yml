@@ -4,14 +4,14 @@ on:
   push:
     branches: [main]
     paths:
-      - 'src/VietQR.Deeplink.Client/**'
+      - "src/VietQR.Deeplink.Client/**"
     tags: ["client-v*.*.*"]
   workflow_dispatch:
     inputs:
       version:
-        description: 'Manual version override (e.g. 1.0.0). Để trống sẽ tự tính theo Git tag/csproj'
+        description: "Manual version override (e.g. 1.0.0). Để trống sẽ tự tính theo Git tag/csproj"
         required: false
-        default: ''
+        default: ""
 
 permissions:
   id-token: write
@@ -109,7 +109,7 @@ jobs:
       - name: Verify package content
         run: |
           unzip -p ./nupkgs/VietQR.Deeplink.Client.$VERSION.nupkg VietQR.Deeplink.Client.nuspec | grep '<releaseNotes>'
-          unzip -l ./nupkgs/VietQR.Deeplink.Client.$VERSION.nupkg | grep -E 'README.md'
+          unzip -l ./nupkgs/VietQR.Deeplink.Client.$VERSION.nupkg | grep -E 'README.md|vietqr_icon.png'
           unzip -l ./nupkgs/VietQR.Deeplink.Client.$VERSION.snupkg | grep -E '\.pdb'
 
       - uses: NuGet/login@v1
@@ -136,4 +136,3 @@ jobs:
             gh release create "$TAG_NAME" -R "$GITHUB_REPOSITORY" \
               --title "VietQR.Deeplink.Client v$VERSION" --notes-file release-notes.md ./nupkgs/*.nupkg ./nupkgs/*.snupkg
           fi
-
