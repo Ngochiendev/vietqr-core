@@ -1,9 +1,9 @@
 {
   "info": {
     "_postman_id": "a1b2c3d4-e5f6-7a8b-9c0d-vietqrcore01",
-    "name": "VietQR Core API (NAPAS247 Microservice)",
-    "description": "Bộ sưu tập Postman Collection đầy đủ cho Microservice vietqr-core chuẩn NAPAS247. Hỗ trợ tạo chuỗi EMVCo, render ảnh thẻ chuẩn (compact), ảnh mã QR tinh gọn (qr_only) và thẻ in đầy đủ thông tin thanh toán (print), cùng bộ API chẩn đoán phân quyền IIS Windows Server.",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"   
+    "name": "VietQR.Core API (NAPAS247 & EMVCo)",
+    "description": "Bộ sưu tập API tích hợp thanh toán VietQR chuẩn NAPAS247 & EMVCo. Hỗ trợ sinh chuỗi mã, render ảnh thẻ thanh toán (compact / qr_only / print), giải mã ảnh, phân tích cú pháp chuỗi và cổng Deeplink mở ứng dụng ngân hàng di động tự điền.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
     {
@@ -17,7 +17,39 @@
       "name": "1. Tạo mã VietQR (Generate)",
       "item": [
         {
-          "name": "1.1 Tạo thẻ VietQR đầy đủ (template: compact)",
+          "name": "1.1 Tạo thẻ VietQR đầy đủ (POST - Khuyên dùng)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bankBin\": \"970422\",\n  \"accountNo\": \"056789799999\",\n  \"accountName\": \"NGUYEN VAN A\",\n  \"amount\": \"50000\",\n  \"description\": \"thanh toan don hang\",\n  \"template\": \"compact\",\n  \"format\": \"png\",\n  \"serviceType\": \"account\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/vietqr-core/generate",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "vietqr-core", "generate"]
+            },
+            "description": "Khởi tạo mã VietQR chuẩn EMVCo và ảnh thẻ thanh toán (Base64 Data URL) qua JSON Body. Hỗ trợ truyền logo tùy chỉnh ở tâm QR qua trường customLogoBase64."
+          },
+          "response": []
+        },
+        {
+          "name": "1.2 Tạo mã VietQR nhanh (GET Query)",
           "request": {
             "method": "GET",
             "header": [
@@ -27,14 +59,14 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/vietqr-core/generate?bankBin=970422&accountNo=056789799999&amount=50000&description=thanh toan hoc phi&template=compact",
+              "raw": "{{baseUrl}}/api/v1/vietqr-core/generate?bankBin=970422&accountNo=056789799999&amount=50000&description=thanh toan don hang&template=compact",
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "vietqr-core", "generate"],
               "query": [
                 {
                   "key": "bankBin",
                   "value": "970422",
-                  "description": "Mã BIN 6 số của ngân hàng (VD: 970422 - MBBank)"
+                  "description": "Mã BIN 6 số của ngân hàng (VD: 970422 - MBBank, 970423 - TPBank)"
                 },
                 {
                   "key": "accountNo",
@@ -48,22 +80,22 @@
                 },
                 {
                   "key": "description",
-                  "value": "thanh toan hoc phi",
+                  "value": "thanh toan don hang",
                   "description": "Nội dung chuyển tiền"
                 },
                 {
                   "key": "template",
                   "value": "compact",
-                  "description": "Mẫu thẻ ảnh đầy đủ (header VietQR, khung viền, logo ngân hàng & Napas247)"
+                  "description": "Mẫu thẻ: compact (thẻ chuẩn), qr_only (chỉ mã QR), print (in hóa đơn)"
                 }
               ]
             },
-            "description": "Tạo mã QR thanh toán dạng thẻ đầy đủ (kích thước chuẩn 600 x 585 px) bao gồm Header VietQR, khung xanh, QR code, logo Napas247 và logo MBBank."
+            "description": "Tạo mã VietQR và ảnh thẻ qua tham số URL thuận tiện cho việc tích hợp nhanh qua phương thức GET."
           },
           "response": []
         },
         {
-          "name": "1.2 Tạo chỉ mã QR tinh gọn (template: qr_only)",
+          "name": "1.3 Tạo chỉ mã QR vuông tinh gọn (template: qr_only)",
           "request": {
             "method": "GET",
             "header": [
@@ -73,7 +105,7 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/vietqr-core/generate?bankBin=970422&accountNo=056789799999&amount=50000&description=thanh toan hoc phi&template=qr_only",
+              "raw": "{{baseUrl}}/api/v1/vietqr-core/generate?bankBin=970422&accountNo=056789799999&amount=50000&description=thanh toan don hang&template=qr_only&size=500",
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "vietqr-core", "generate"],
               "query": [
@@ -91,21 +123,26 @@
                 },
                 {
                   "key": "description",
-                  "value": "thanh toan hoc phi"
+                  "value": "thanh toan don hang"
                 },
                 {
                   "key": "template",
                   "value": "qr_only",
-                  "description": "Mẫu tinh gọn: chỉ có mã QR vuông 500x500px kèm icon VietQR ở chính giữa"
+                  "description": "Mẫu tinh gọn: chỉ chứa ma trận QR vuông 500x500px kèm logo ở tâm"
+                },
+                {
+                  "key": "size",
+                  "value": "500",
+                  "description": "Kích thước ảnh vuông px (100 - 2000)"
                 }
               ]
             },
-            "description": "Tạo ảnh mã QR vuông tinh gọn (500 x 500 px) chỉ chứa mã QR và logo VietQR ở tâm, không có viền thẻ và header/footer."
+            "description": "Tạo ảnh mã QR vuông tinh gọn chỉ chứa mã QR và logo ở tâm, không có khung viền và header/footer thẻ."
           },
           "response": []
         },
         {
-          "name": "1.3 Tạo thẻ VietQR in đầy đủ thông tin (template: print)",
+          "name": "1.4 Tạo thẻ VietQR mẫu in đầy đủ (template: print)",
           "request": {
             "method": "GET",
             "header": [
@@ -115,313 +152,159 @@
               }
             ],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/vietqr-core/generate?bankBin=970415&accountNo=113366668888&accountName=QUY VAC XIN COVID&amount=790000&description=dong qop quy vac xin&template=print",
+              "raw": "{{baseUrl}}/api/v1/vietqr-core/generate?bankBin=970422&accountNo=056789799999&accountName=NGUYEN VAN A&amount=50000&description=thanh toan don hang&template=print",
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "vietqr-core", "generate"],
               "query": [
                 {
                   "key": "bankBin",
-                  "value": "970415",
-                  "description": "VietinBank"
+                  "value": "970422"
                 },
                 {
                   "key": "accountNo",
-                  "value": "113366668888",
-                  "description": "Số tài khoản nhận tiền"
+                  "value": "056789799999"
                 },
                 {
                   "key": "accountName",
-                  "value": "QUY VAC XIN COVID",
-                  "description": "Tên chủ tài khoản (hiển thị in hoa)"
+                  "value": "NGUYEN VAN A",
+                  "description": "Tên chủ tài khoản thụ hưởng hiển thị in hoa"
                 },
                 {
                   "key": "amount",
-                  "value": "790000",
-                  "description": "Số tiền (VND)"
+                  "value": "50000"
                 },
                 {
                   "key": "description",
-                  "value": "dong qop quy vac xin",
-                  "description": "Nội dung chuyển khoản"
+                  "value": "thanh toan don hang"
                 },
                 {
                   "key": "template",
                   "value": "print",
-                  "description": "Mẫu in đầy đủ: thẻ VietQR kèm thông tin chi tiết thanh toán bên dưới"
+                  "description": "Mẫu in hóa đơn: mã QR kèm 5 dòng thông tin thanh toán chi tiết"
                 }
               ]
             },
-            "description": "Tạo ảnh thẻ VietQR mẫu in (print) đầy đủ thông tin: Header VietQR, khung QR, logo Napas và Ngân hàng, cùng 5 dòng thông tin chi tiết: Số tiền VND, Nội dung CK, Tên chủ TK, Số TK in đậm, và Tên đầy đủ của ngân hàng."
+            "description": "Tạo thẻ VietQR khổ in (print) đầy đủ thông tin: Header, mã QR, logo ngân hàng cùng chi tiết số tiền, nội dung, chủ TK và tên ngân hàng."
           },
           "response": []
         },
         {
-          "name": "1.4 Tạo mã QR mặc định (không truyền template)",
+          "name": "1.5 Xuất trực tiếp stream file ảnh (GET Image)",
           "request": {
             "method": "GET",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
+            "header": [],
             "url": {
-              "raw": "{{baseUrl}}/api/v1/vietqr-core/generate?bankBin=970403&accountNo=0011012345678&amount=180000&description=don hang NPS6869",
+              "raw": "{{baseUrl}}/api/v1/vietqr-core/image?bankBin=970422&accountNo=056789799999&amount=50000&description=thanh toan don hang&template=compact&format=png",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "vietqr-core", "generate"],
+              "path": ["api", "v1", "vietqr-core", "image"],
               "query": [
                 {
                   "key": "bankBin",
-                  "value": "970403",
-                  "description": "Sacombank"
+                  "value": "970422"
                 },
                 {
                   "key": "accountNo",
-                  "value": "0011012345678"
+                  "value": "056789799999"
                 },
                 {
                   "key": "amount",
-                  "value": "180000"
+                  "value": "50000"
                 },
                 {
                   "key": "description",
-                  "value": "don hang NPS6869"
-                }
-              ]
-            },
-            "description": "Khi không truyền tham số template, hệ thống tự động mặc định sử dụng mẫu 'compact'."
-          },
-          "response": []
-        },
-        {
-          "name": "1.4 Tạo mã QR ngân hàng Vietcombank (970436)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/vietqr-core/generate?bankBin=970436&accountNo=1012345678&amount=250000&description=chuyen tien an trua&template=qr_only",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "vietqr-core", "generate"],
-              "query": [
-                {
-                  "key": "bankBin",
-                  "value": "970436",
-                  "description": "Vietcombank"
-                },
-                {
-                  "key": "accountNo",
-                  "value": "1012345678"
-                },
-                {
-                  "key": "amount",
-                  "value": "250000"
-                },
-                {
-                  "key": "description",
-                  "value": "chuyen tien an trua"
+                  "value": "thanh toan don hang"
                 },
                 {
                   "key": "template",
-                  "value": "qr_only"
-                }
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "1.5 [Test lỗi Code 01] Thiếu tham số bắt buộc",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/vietqr-core/generate?bankBin=970422&amount=50000",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "vietqr-core", "generate"],
-              "query": [
-                {
-                  "key": "bankBin",
-                  "value": "970422"
+                  "value": "compact"
                 },
                 {
-                  "key": "amount",
-                  "value": "50000"
+                  "key": "format",
+                  "value": "png",
+                  "description": "png, webp hoặc svg"
                 }
               ]
             },
-            "description": "Trả về lỗi HTTP 400 với mã lỗi '01' do thiếu tham số accountNo và description."
-          },
-          "response": []
-        },
-        {
-          "name": "1.6 [Test lỗi Code 02] Số tiền không hợp lệ (<= 0)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/vietqr-core/generate?bankBin=970422&accountNo=056789799999&amount=0&description=test amount 0",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "vietqr-core", "generate"],
-              "query": [
-                {
-                  "key": "bankBin",
-                  "value": "970422"
-                },
-                {
-                  "key": "accountNo",
-                  "value": "056789799999"
-                },
-                {
-                  "key": "amount",
-                  "value": "0"
-                },
-                {
-                  "key": "description",
-                  "value": "test amount 0"
-                }
-              ]
-            },
-            "description": "Trả về lỗi HTTP 400 với mã lỗi '02' khi số tiền amount <= 0 hoặc chứa ký tự âm."
-          },
-          "response": []
-        },
-        {
-          "name": "1.7 [Test lỗi Code 03] Mã BIN viết tắt thay vì đúng 6 số",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/vietqr-core/generate?bankBin=MB&accountNo=056789799999&amount=50000&description=test short code",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "vietqr-core", "generate"],
-              "query": [
-                {
-                  "key": "bankBin",
-                  "value": "MB"
-                },
-                {
-                  "key": "accountNo",
-                  "value": "056789799999"
-                },
-                {
-                  "key": "amount",
-                  "value": "50000"
-                },
-                {
-                  "key": "description",
-                  "value": "test short code"
-                }
-              ]
-            },
-            "description": "Trả về lỗi HTTP 400 với mã lỗi '03' yêu cầu bắt buộc mã BIN phải là đúng 6 chữ số theo chuẩn NAPAS."
-          },
-          "response": []
-        },
-        {
-          "name": "1.8 [Test lỗi Code 04] Mã BIN không tồn tại trong danh mục",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/vietqr-core/generate?bankBin=999999&accountNo=056789799999&amount=50000&description=test bin not found",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "vietqr-core", "generate"],
-              "query": [
-                {
-                  "key": "bankBin",
-                  "value": "999999"
-                },
-                {
-                  "key": "accountNo",
-                  "value": "056789799999"
-                },
-                {
-                  "key": "amount",
-                  "value": "50000"
-                },
-                {
-                  "key": "description",
-                  "value": "test bin not found"
-                }
-              ]
-            },
-            "description": "Trả về lỗi HTTP 400 với mã lỗi '04' khi mã BIN 6 số nhưng không tìm thấy trong hệ thống liên minh NAPAS."
-          },
-          "response": []
-        },
-        {
-          "name": "1.9 [Test lỗi Code 05] Template không hợp lệ",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/vietqr-core/generate?bankBin=970422&accountNo=056789799999&amount=50000&description=test invalid template&template=custom_style",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "vietqr-core", "generate"],
-              "query": [
-                {
-                  "key": "bankBin",
-                  "value": "970422"
-                },
-                {
-                  "key": "accountNo",
-                  "value": "056789799999"
-                },
-                {
-                  "key": "amount",
-                  "value": "50000"
-                },
-                {
-                  "key": "description",
-                  "value": "test invalid template"
-                },
-                {
-                  "key": "template",
-                  "value": "custom_style"
-                }
-              ]
-            },
-            "description": "Trả về lỗi HTTP 400 với mã lỗi '05' khi tham số template khác ngoài 'compact' và 'qr_only'."
+            "description": "Trả về trực tiếp binary stream hình ảnh (Content-Type: image/png), dùng gắn thẳng vào thẻ <img src='...'> của website mà không cần xử lý Base64."
           },
           "response": []
         }
       ]
     },
     {
-      "name": "2. Danh mục Ngân hàng (Banks)",
+      "name": "2. Phân tích & Giải mã (Parse & Decode)",
       "item": [
         {
-          "name": "2.1 Lấy danh sách ngân hàng qua Controller API",
+          "name": "2.1 Phân tích cú pháp chuỗi EMVCo (Parse)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"qrCode\": \"00020101021238560010A0000007270126000697042201120567897999990208QRIBFTTA53037045405500005802VN62230819thanh toan don hang6304B18D\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/vietqr-core/parse",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "vietqr-core", "parse"]
+            },
+            "description": "Phân tích chuỗi VietQR EMVCo thành đối tượng có cấu trúc: Ngân hàng thụ hưởng, số tài khoản, số tiền, nội dung thanh toán và xác thực mã CRC16 Tag 63."
+          },
+          "response": []
+        },
+        {
+          "name": "2.2 Giải mã mã QR từ ảnh Base64 (Decode)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"imageBase64\": \"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/vietqr-core/decode",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "vietqr-core", "decode"]
+            },
+            "description": "Quét và giải mã hình ảnh chứa mã QR (chuỗi Base64 hoặc upload form-data trường 'file') để trích xuất dữ liệu thanh toán VietQR."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Danh mục Ngân hàng (Banks)",
+      "item": [
+        {
+          "name": "3.1 Lấy toàn bộ danh mục 76+ ngân hàng NAPAS",
           "request": {
             "method": "GET",
             "header": [
@@ -435,12 +318,12 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "vietqr-core", "banks"]
             },
-            "description": "Lấy toàn bộ danh sách ngân hàng thành viên NAPAS (được cache trong file banks.json)."
+            "description": "Lấy danh sách toàn bộ 76+ ngân hàng thành viên liên minh NAPAS nhúng sẵn trong hệ thống (mã BIN, tên viết tắt, tên đầy đủ, URL logo CDN)."
           },
           "response": []
         },
         {
-          "name": "2.2 Tra cứu ngân hàng theo BIN hoặc mã viết tắt",
+          "name": "3.2 Tra cứu ngân hàng theo mã BIN hoặc mã viết tắt",
           "request": {
             "method": "GET",
             "header": [
@@ -454,72 +337,44 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "vietqr-core", "banks", "970422"]
             },
-            "description": "Tra cứu ngân hàng theo mã BIN (vd: 970422) hoặc mã viết tắt (vd: MB) trực tiếp từ Embedded Bank Catalog."
+            "description": "Tra cứu thông tin ngân hàng theo mã BIN gồm 6 chữ số (ví dụ: 970422) hoặc mã viết tắt (ví dụ: MB, VCB, TPB)."
           },
           "response": []
         }
       ]
     },
     {
-      "name": "3. Vận hành & Chẩn đoán Hiệu năng (Performance & Diagnostics)",
+      "name": "4. Cổng Deeplink mở App Ngân hàng (Deeplink)",
       "item": [
         {
-          "name": "3.1 Kiểm thử chất lượng toàn diện hệ thống (Self-Test)",
+          "name": "4.1 Tạo liên kết mở app tự điền thanh toán (Create Intent)",
           "request": {
-            "method": "GET",
+            "method": "POST",
             "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
               {
                 "key": "Accept",
                 "value": "application/json"
               }
             ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/vietqr-core/self-test",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "vietqr-core", "self-test"]
-            },
-            "description": "Tự động kiểm tra chất lượng toàn diện trên IIS Server: thuật toán CRC16, chuẩn EMVCo, engine SkiaSharp render 3 template, phân quyền đĩa cứng và tốc độ xử lý."
-          },
-          "response": []
-        },
-        {
-          "name": "3.2 Kiểm thử tải 2.000 đến 10.000 mã QR học phí (Stress & Load Test)",
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/vietqr-core/benchmark-school-test?testRequests=2000&template=qr_only&totalSchools=1000&studentsPerSchool=1000",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "vietqr-core", "benchmark-school-test"],
-              "query": [
-                {
-                  "key": "testRequests",
-                  "value": "2000",
-                  "description": "Số lượng mã QR tạo thực tế trên server (VD: 2000 hoặc 10000, tối đa 50.000)"
-                },
-                {
-                  "key": "template",
-                  "value": "qr_only",
-                  "description": "Mẫu template: 'qr_only' (siêu tốc ~760 req/s, 10.000 QR chỉ ~13s), 'print' (thẻ in) hoặc 'emv_only' (chỉ chuỗi text)"
-                },
-                {
-                  "key": "totalSchools",
-                  "value": "1000",
-                  "description": "Quy mô số trường học muốn dự phóng (VD: 1000)"
-                },
-                {
-                  "key": "studentsPerSchool",
-                  "value": "1000",
-                  "description": "Số học sinh trung bình mỗi trường muốn dự phóng (VD: 1000)"
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"appCode\": \"MB\",\n  \"qrCode\": \"00020101021238560010A0000007270126000697042201120567897999990208QRIBFTTA53037045405500005802VN62230819thanh toan don hang6304B18D\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
                 }
-              ]
+              }
             },
-            "description": "Chạy kịch bản tạo thực tế 2.000 hoặc 10.000 mã QR song song trên máy chủ IIS: Đo đạc tốc độ phản hồi (ms/QR), Throughput (QR/s), RAM tiêu thụ và dự phóng thời gian cho 1.000 trường."
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/vietqr-core/deeplink/intents",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "vietqr-core", "deeplink", "intents"]
+            },
+            "description": "Khởi tạo liên kết điều hướng thanh toán 1-chạm (Bridge URL ngắn hạn). Khi khách hàng bấm vào link trên điện thoại di động, hệ thống tự động mở app ngân hàng tương ứng và điền sẵn số tài khoản, số tiền, nội dung."
           },
           "response": []
         }
