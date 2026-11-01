@@ -6,13 +6,13 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
     <IsPackable>false</IsPackable>
+    <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- Luôn lấy phiên bản VietQR.Core mới nhất từ NuGet (1.*) -->
+    <!-- Luôn lấy phiên bản VietQR.Core và VietQR.Deeplink.Client mới nhất từ NuGet -->
     <PackageReference Include="VietQR.Core" Version="*" />
-    <ProjectReference Include="..\VietQR.Deeplink.Client\VietQR.Deeplink.Client.csproj" Condition="Exists('..\VietQR.Deeplink.Client\VietQR.Deeplink.Client.csproj')" />
-    <PackageReference Include="VietQR.Deeplink.Client" Version="*" Condition="!Exists('..\VietQR.Deeplink.Client\VietQR.Deeplink.Client.csproj')" />
+    <PackageReference Include="VietQR.Deeplink.Client" Version="*" />
   </ItemGroup>
 
   <ItemGroup>
@@ -23,14 +23,10 @@
     <InternalsVisibleTo Include="vietqr_core.Tests" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Content Remove="wwwroot\all_banks_gallery.html" />
-    <None Include="wwwroot\all_banks_gallery.html" />
-  </ItemGroup>
 
 
   <PropertyGroup Condition="Exists('..\VietQR.Deeplink\VietQR.Deeplink.csproj')">
-    <DefineConstants>;HAS_VIETQR_DEEPLINK</DefineConstants>
+    <DefineConstants>$(DefineConstants);HAS_VIETQR_DEEPLINK</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup Condition="Exists('..\VietQR.Deeplink\VietQR.Deeplink.csproj')">

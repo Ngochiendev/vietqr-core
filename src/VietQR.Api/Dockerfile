@@ -2,13 +2,10 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /app
 
 COPY ["Directory.Build.props", "./"]
-COPY ["src/VietQR.Core/VietQR.Core.csproj", "src/VietQR.Core/"]
-COPY ["src/VietQR.Deeplink.Client/VietQR.Deeplink.Client.csproj", "src/VietQR.Deeplink.Client/"]
-COPY ["src/VietQR.Api/VietQR.Api.csproj", "src/VietQR.Api/"]
-
-RUN dotnet restore "src/VietQR.Api/VietQR.Api.csproj"
 
 COPY ["src/", "src/"]
+
+RUN dotnet restore "src/VietQR.Api/VietQR.Api.csproj"
 RUN dotnet publish "src/VietQR.Api/VietQR.Api.csproj" -c Release -o /app/publish --no-restore
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime

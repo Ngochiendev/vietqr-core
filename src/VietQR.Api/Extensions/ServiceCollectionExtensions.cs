@@ -16,14 +16,38 @@ public static class ServiceCollectionExtensions
     {
         services.AddHealthChecks();
         services.AddResponseCaching();
+        services.AddHttpContextAccessor();
+        services.AddTransient<ForwardedIpHandler>();
 
         services.AddVietQrDeeplink(config.GetSection(VietQrDeeplinkOptions.SectionName));
+        services.ConfigureHttpClientDefaults(b => b.AddHttpMessageHandler<ForwardedIpHandler>());
 
 #if HAS_VIETQR_DEEPLINK
         VietQR.Deeplink.DeeplinkHostExtensions.AddDeeplinkServer(services, config);
 #endif
 
         return services;
+    }
+
+    private static string ResolveClientIp(HttpContext httpContext) =>
+        httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+
+    internal sealed class ForwardedIpHandler(IHttpContextAccessor accessor) : DelegatingHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            var ctx = accessor.HttpContext;
+            if (ctx is not null && !request.Headers.Contains("X-Forwarded-For"))
+            {
+                var ip = ResolveClientIp(ctx);
+                if (!string.IsNullOrWhiteSpace(ip) && ip != "unknown")
+                {
+                    request.Headers.TryAddWithoutValidation("X-Forwarded-For", ip);
+                }
+            }
+
+            return base.SendAsync(request, cancellationToken);
+        }
     }
 
     /// <summary>
@@ -42,7 +66,7 @@ public static class ServiceCollectionExtensions
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
             options.AddPolicy("generate", httpContext =>
                 System.Threading.RateLimiting.RateLimitPartition.GetFixedWindowLimiter(
-                    httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    ResolveClientIp(httpContext),
                     _ => new System.Threading.RateLimiting.FixedWindowRateLimiterOptions
                     {
                         PermitLimit = 30,

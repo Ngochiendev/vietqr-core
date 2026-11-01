@@ -8,3 +8,9 @@
 src/VietQR.Api/wwwroot/data/logos/*.png
 tests/
 docs/
+deploy/
+.codegraph/
+.agents/
+*.tar.gz
+*.key
+*.pem

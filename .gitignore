@@ -100,3 +100,7 @@ appsettings.Production.json.local
 
 version.props
 src/VietQR.Deeplink/
+deploy/
+*.key
+*.pem
+*.tar.gz
