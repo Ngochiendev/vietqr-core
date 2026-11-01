@@ -42,23 +42,4 @@ public sealed class DeeplinkBankAppInfo
     /// </summary>
     [JsonPropertyName("supportsAutofill")]
     public bool SupportsAutofill { get; set; }
-
-    /// <summary>
-    /// Package name trên Android (ví dụ com.mbmobile).
-    /// </summary>
-    [JsonPropertyName("packageAndroid")]
-    public string? PackageAndroid { get; set; }
-
-    /// <summary>
-    /// Bundle ID trên iOS (ví dụ com.mbmobile, com.vcb.VCB).
-    /// </summary>
-    [JsonPropertyName("packageIos")]
-    public string? PackageIos { get; set; }
-
-    /// <summary>
-    /// ID ứng dụng trên Apple App Store (dùng tạo link tải app).
-    /// </summary>
-    [JsonPropertyName("appStoreId")]
-    public string? AppStoreId { get; set; }
 }
-
