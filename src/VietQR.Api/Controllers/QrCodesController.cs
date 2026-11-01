@@ -424,9 +424,14 @@ public class QrCodesController : ControllerBase
             _ => QrImageFormat.Png
         };
 
+        var merchantName = !string.IsNullOrWhiteSpace(req.AccountName)
+            ? req.AccountName.Trim()
+            : (!string.IsNullOrWhiteSpace(bankInfo.ShortName) ? bankInfo.ShortName : "VIETQR");
+
         var qrBuilder = new VietQr()
             .SetBeneficiaryOrganization(cleanBin, cleanAccountNo, resolvedServiceType)
             .SetTransactionAmount(cleanAmount)
+            .SetMerchantInfo(merchantName, null)
             .SetAdditionalData(purpose: cleanDescription, billNumber: req.BillNumber);
 
         var finalQrContent = qrBuilder.Build();
