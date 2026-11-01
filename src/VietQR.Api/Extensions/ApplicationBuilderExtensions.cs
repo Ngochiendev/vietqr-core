@@ -72,6 +72,20 @@ public static class ApplicationBuilderExtensions
                 }
             }
         });
+
+        var deeplinkIconsPath = Path.GetFullPath(Path.Combine(app.Environment.ContentRootPath, "..", "VietQR.Deeplink", "wwwroot", "icons"));
+        if (Directory.Exists(deeplinkIconsPath))
+        {
+            app.UseStaticFiles(new StaticFileOptions
+            {
+                FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(deeplinkIconsPath),
+                RequestPath = "/icons",
+                OnPrepareResponse = ctx =>
+                {
+                    ctx.Context.Response.Headers.CacheControl = "public, max-age=31536000, immutable";
+                }
+            });
+        }
         app.UseResponseCaching();
         app.UseRateLimiter();
         app.MapHealthChecks("/health");

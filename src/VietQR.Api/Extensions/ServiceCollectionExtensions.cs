@@ -37,12 +37,38 @@ public static class ServiceCollectionExtensions
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             var ctx = accessor.HttpContext;
-            if (ctx is not null && !request.Headers.Contains("X-Forwarded-For"))
+            if (ctx is not null)
             {
-                var ip = ResolveClientIp(ctx);
-                if (!string.IsNullOrWhiteSpace(ip) && ip != "unknown")
+                if (!request.Headers.Contains("X-Forwarded-For"))
                 {
-                    request.Headers.TryAddWithoutValidation("X-Forwarded-For", ip);
+                    var ip = ResolveClientIp(ctx);
+                    if (!string.IsNullOrWhiteSpace(ip) && ip != "unknown")
+                    {
+                        request.Headers.TryAddWithoutValidation("X-Forwarded-For", ip);
+                    }
+                }
+
+                if (!request.Headers.Contains("X-Forwarded-Host"))
+                {
+                    var host = ctx.Request.Headers["X-Forwarded-Host"].FirstOrDefault();
+                    if (string.IsNullOrWhiteSpace(host) && ctx.Request.Host.HasValue)
+                    {
+                        host = ctx.Request.Host.Value;
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(host))
+                    {
+                        request.Headers.TryAddWithoutValidation("X-Forwarded-Host", host);
+                    }
+                }
+
+                if (!request.Headers.Contains("X-Forwarded-Proto"))
+                {
+                    var proto = ctx.Request.Headers["X-Forwarded-Proto"].FirstOrDefault() ?? ctx.Request.Scheme;
+                    if (!string.IsNullOrWhiteSpace(proto))
+                    {
+                        request.Headers.TryAddWithoutValidation("X-Forwarded-Proto", proto);
+                    }
                 }
             }
 
