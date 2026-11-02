@@ -41,7 +41,10 @@
     <None Include="vietqr_icon.png" Pack="true" PackagePath="\" />
   </ItemGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="Exists('..\VietQR.Core\VietQR.Core.csproj')">
+    <ProjectReference Include="..\VietQR.Core\VietQR.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition="!Exists('..\VietQR.Core\VietQR.Core.csproj')">
     <PackageReference Include="VietQR.Core" Version="*" />
   </ItemGroup>
 

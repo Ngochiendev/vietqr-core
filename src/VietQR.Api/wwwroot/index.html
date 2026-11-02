@@ -1353,7 +1353,7 @@ curl -X POST "https://your-host/api/v1/vietqr-core/deeplink/intents" \
 
         const opt = document.createElement('option');
         opt.value = appCode;
-        opt.text = `${shortName} — ${appName} (Tự điền)`;
+        opt.text = `${shortName} — ${appName}`;
 
         if (appCode === prevVal) opt.selected = true;
         select.appendChild(opt);

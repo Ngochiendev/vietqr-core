@@ -86,6 +86,40 @@ public static class ApplicationBuilderExtensions
                 }
             });
         }
+
+        // Phục vụ các file kiểm thử HTML 
+        if (app.Environment.IsDevelopment())
+        {
+            var testsDirectoryPath = Path.GetFullPath(Path.Combine(app.Environment.ContentRootPath, "..", "..", "tests"));
+            if (Directory.Exists(testsDirectoryPath))
+            {
+                var testsProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(testsDirectoryPath);
+                app.UseStaticFiles(new StaticFileOptions
+                {
+                    FileProvider = testsProvider,
+                    OnPrepareResponse = ctx =>
+                    {
+                        if (ctx.File.Name.EndsWith(".html", StringComparison.OrdinalIgnoreCase))
+                        {
+                            ctx.Context.Response.Headers.CacheControl = "no-store, no-cache, must-revalidate";
+                        }
+                    }
+                });
+
+                app.UseStaticFiles(new StaticFileOptions
+                {
+                    FileProvider = testsProvider,
+                    RequestPath = "/tests",
+                    OnPrepareResponse = ctx =>
+                    {
+                        if (ctx.File.Name.EndsWith(".html", StringComparison.OrdinalIgnoreCase))
+                        {
+                            ctx.Context.Response.Headers.CacheControl = "no-store, no-cache, must-revalidate";
+                        }
+                    }
+                });
+            }
+        }
         app.UseResponseCaching();
         app.UseRateLimiter();
         app.MapHealthChecks("/health");
