@@ -9,9 +9,16 @@
     <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
   </PropertyGroup>
 
-  <ItemGroup>
-    <!-- Luôn lấy phiên bản VietQR.Core và VietQR.Deeplink.Client mới nhất từ NuGet -->
+  <ItemGroup Condition="Exists('..\VietQR.Core\VietQR.Core.csproj')">
+    <ProjectReference Include="..\VietQR.Core\VietQR.Core.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition="!Exists('..\VietQR.Core\VietQR.Core.csproj')">
     <PackageReference Include="VietQR.Core" Version="*" />
+  </ItemGroup>
+  <ItemGroup Condition="Exists('..\VietQR.Deeplink.Client\VietQR.Deeplink.Client.csproj')">
+    <ProjectReference Include="..\VietQR.Deeplink.Client\VietQR.Deeplink.Client.csproj" />
+  </ItemGroup>
+  <ItemGroup Condition="!Exists('..\VietQR.Deeplink.Client\VietQR.Deeplink.Client.csproj')">
     <PackageReference Include="VietQR.Deeplink.Client" Version="*" />
   </ItemGroup>
 
