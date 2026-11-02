@@ -42,4 +42,16 @@ public sealed class DeeplinkBankAppInfo
     /// </summary>
     [JsonPropertyName("supportsAutofill")]
     public bool SupportsAutofill { get; set; }
+
+    /// <summary>
+    /// Cho biết ứng dụng có hỗ trợ deeplink iOS hay không.
+    /// </summary>
+    [JsonPropertyName("supportsIos")]
+    public bool SupportsIos { get; set; } = true;
+
+    /// <summary>
+    /// Cho biết ứng dụng có hỗ trợ deeplink Android hay không.
+    /// </summary>
+    [JsonPropertyName("supportsAndroid")]
+    public bool SupportsAndroid { get; set; } = true;
 }
