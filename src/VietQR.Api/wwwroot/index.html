@@ -577,96 +577,61 @@
                     7 Ứng dụng hỗ trợ TỰ ĐỘNG ĐIỀN (Autofill STK + Tiền + Nội dung)
                   </h3>
                 </div>
-                <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3">
+                <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
                   <!-- BIDV -->
-                  <div class="p-3 rounded-xl border border-emerald-200 bg-emerald-50/40 hover:bg-emerald-50 transition flex items-center gap-2.5">
-                    <img src="/icons/bidv.png" alt="BIDV" class="w-8 h-8 rounded-lg object-contain bg-white p-1 border border-slate-200 shadow-sm shrink-0">
-                    <div class="min-w-0 flex-1">
-                      <div class="flex items-center justify-between gap-1">
-                        <span class="font-bold text-xs text-slate-900 truncate">BIDV</span>
-                        <code class="text-[10px] mono bg-emerald-100 text-emerald-800 px-1 py-0.5 rounded font-bold cursor-pointer" onclick="copyText('BIDV')" title="Click để copy appCode">BIDV</code>
-                      </div>
-                      <span class="text-[10px] text-slate-500 block truncate">SmartBanking</span>
-                      <span class="text-[10px] font-semibold text-emerald-700 block">iOS + Android</span>
-                    </div>
+                  <div onclick="copyText('BIDV')" title="Bấm để sao chép mã appCode 'BIDV'"
+                       class="p-3 rounded-2xl border border-emerald-200/80 bg-emerald-50/20 hover:bg-emerald-50/70 hover:border-emerald-400 hover:shadow-sm transition cursor-pointer flex flex-col items-center text-center group">
+                    <img src="/icons/bidv.png" alt="BIDV" class="w-11 h-11 rounded-xl object-contain shadow-xs shrink-0 mb-2 transition group-hover:scale-105">
+                    <span class="font-bold text-xs text-slate-900 leading-tight">BIDV</span>
+                    <span class="text-[11px] text-slate-500 leading-tight mt-0.5 truncate w-full">SmartBanking</span>
                   </div>
 
                   <!-- MB -->
-                  <div class="p-3 rounded-xl border border-emerald-200 bg-emerald-50/40 hover:bg-emerald-50 transition flex items-center gap-2.5">
-                    <img src="/icons/mb.png" alt="MB" class="w-8 h-8 rounded-lg object-contain bg-white p-1 border border-slate-200 shadow-sm shrink-0">
-                    <div class="min-w-0 flex-1">
-                      <div class="flex items-center justify-between gap-1">
-                        <span class="font-bold text-xs text-slate-900 truncate">MBBank</span>
-                        <code class="text-[10px] mono bg-emerald-100 text-emerald-800 px-1 py-0.5 rounded font-bold cursor-pointer" onclick="copyText('MB')" title="Click để copy appCode">MB</code>
-                      </div>
-                      <span class="text-[10px] text-slate-500 block truncate">MB Bank</span>
-                      <span class="text-[10px] font-semibold text-emerald-700 block">iOS + Android</span>
-                    </div>
+                  <div onclick="copyText('MB')" title="Bấm để sao chép mã appCode 'MB'"
+                       class="p-3 rounded-2xl border border-emerald-200/80 bg-emerald-50/20 hover:bg-emerald-50/70 hover:border-emerald-400 hover:shadow-sm transition cursor-pointer flex flex-col items-center text-center group">
+                    <img src="/icons/mb.png" alt="MB" class="w-11 h-11 rounded-xl object-contain shadow-xs shrink-0 mb-2 transition group-hover:scale-105">
+                    <span class="font-bold text-xs text-slate-900 leading-tight">MBBank</span>
+                    <span class="text-[11px] text-slate-500 leading-tight mt-0.5 truncate w-full">MB Bank</span>
                   </div>
 
                   <!-- OCB -->
-                  <div class="p-3 rounded-xl border border-emerald-200 bg-emerald-50/40 hover:bg-emerald-50 transition flex items-center gap-2.5">
-                    <img src="/icons/ocb.png" alt="OCB" class="w-8 h-8 rounded-lg object-contain bg-white p-1 border border-slate-200 shadow-sm shrink-0">
-                    <div class="min-w-0 flex-1">
-                      <div class="flex items-center justify-between gap-1">
-                        <span class="font-bold text-xs text-slate-900 truncate">OCB</span>
-                        <code class="text-[10px] mono bg-emerald-100 text-emerald-800 px-1 py-0.5 rounded font-bold cursor-pointer" onclick="copyText('OCB')" title="Click để copy appCode">OCB</code>
-                      </div>
-                      <span class="text-[10px] text-slate-500 block truncate">OCB OMNI</span>
-                      <span class="text-[10px] font-semibold text-emerald-700 block">iOS + Android</span>
-                    </div>
+                  <div onclick="copyText('OCB')" title="Bấm để sao chép mã appCode 'OCB'"
+                       class="p-3 rounded-2xl border border-emerald-200/80 bg-emerald-50/20 hover:bg-emerald-50/70 hover:border-emerald-400 hover:shadow-sm transition cursor-pointer flex flex-col items-center text-center group">
+                    <img src="/icons/ocb.png" alt="OCB" class="w-11 h-11 rounded-xl object-contain shadow-xs shrink-0 mb-2 transition group-hover:scale-105">
+                    <span class="font-bold text-xs text-slate-900 leading-tight">OCB</span>
+                    <span class="text-[11px] text-slate-500 leading-tight mt-0.5 truncate w-full">OCB OMNI</span>
                   </div>
 
                   <!-- TPB -->
-                  <div class="p-3 rounded-xl border border-emerald-200 bg-emerald-50/40 hover:bg-emerald-50 transition flex items-center gap-2.5">
-                    <img src="/icons/tpb.png" alt="TPBank" class="w-8 h-8 rounded-lg object-contain bg-white p-1 border border-slate-200 shadow-sm shrink-0">
-                    <div class="min-w-0 flex-1">
-                      <div class="flex items-center justify-between gap-1">
-                        <span class="font-bold text-xs text-slate-900 truncate">TPBank</span>
-                        <code class="text-[10px] mono bg-emerald-100 text-emerald-800 px-1 py-0.5 rounded font-bold cursor-pointer" onclick="copyText('TPB')" title="Click để copy appCode">TPB</code>
-                      </div>
-                      <span class="text-[10px] text-slate-500 block truncate">TPBank Mobile</span>
-                      <span class="text-[10px] font-semibold text-emerald-700 block">iOS + Android</span>
-                    </div>
+                  <div onclick="copyText('TPB')" title="Bấm để sao chép mã appCode 'TPB'"
+                       class="p-3 rounded-2xl border border-emerald-200/80 bg-emerald-50/20 hover:bg-emerald-50/70 hover:border-emerald-400 hover:shadow-sm transition cursor-pointer flex flex-col items-center text-center group">
+                    <img src="/icons/tpb.png" alt="TPBank" class="w-11 h-11 rounded-xl object-contain shadow-xs shrink-0 mb-2 transition group-hover:scale-105">
+                    <span class="font-bold text-xs text-slate-900 leading-tight">TPBank</span>
+                    <span class="text-[11px] text-slate-500 leading-tight mt-0.5 truncate w-full">TPBank Mobile</span>
                   </div>
 
                   <!-- CAKE -->
-                  <div class="p-3 rounded-xl border border-emerald-200 bg-emerald-50/40 hover:bg-emerald-50 transition flex items-center gap-2.5">
-                    <img src="/icons/cake.png" alt="CAKE" class="w-8 h-8 rounded-lg object-contain bg-white p-1 border border-slate-200 shadow-sm shrink-0">
-                    <div class="min-w-0 flex-1">
-                      <div class="flex items-center justify-between gap-1">
-                        <span class="font-bold text-xs text-slate-900 truncate">CAKE</span>
-                        <code class="text-[10px] mono bg-emerald-100 text-emerald-800 px-1 py-0.5 rounded font-bold cursor-pointer" onclick="copyText('CAKE')" title="Click để copy appCode">CAKE</code>
-                      </div>
-                      <span class="text-[10px] text-slate-500 block truncate">Ngân hàng số</span>
-                      <span class="text-[10px] font-semibold text-emerald-700 block">iOS + Android</span>
-                    </div>
+                  <div onclick="copyText('CAKE')" title="Bấm để sao chép mã appCode 'CAKE'"
+                       class="p-3 rounded-2xl border border-emerald-200/80 bg-emerald-50/20 hover:bg-emerald-50/70 hover:border-emerald-400 hover:shadow-sm transition cursor-pointer flex flex-col items-center text-center group">
+                    <img src="/icons/cake.png" alt="CAKE" class="w-11 h-11 rounded-xl object-contain shadow-xs shrink-0 mb-2 transition group-hover:scale-105">
+                    <span class="font-bold text-xs text-slate-900 leading-tight">CAKE</span>
+                    <span class="text-[11px] text-slate-500 leading-tight mt-0.5 truncate w-full">Ngân hàng số</span>
                   </div>
 
                   <!-- MoMo -->
-                  <div class="p-3 rounded-xl border border-emerald-200 bg-emerald-50/40 hover:bg-emerald-50 transition flex items-center gap-2.5">
-                    <img src="/icons/momo.png" alt="MoMo" class="w-8 h-8 rounded-lg object-contain bg-white p-1 border border-slate-200 shadow-sm shrink-0">
-                    <div class="min-w-0 flex-1">
-                      <div class="flex items-center justify-between gap-1">
-                        <span class="font-bold text-xs text-slate-900 truncate">MoMo</span>
-                        <code class="text-[10px] mono bg-emerald-100 text-emerald-800 px-1 py-0.5 rounded font-bold cursor-pointer" onclick="copyText('MOMO')" title="Click để copy appCode">MOMO</code>
-                      </div>
-                      <span class="text-[10px] text-slate-500 block truncate">Ví MoMo</span>
-                      <span class="text-[10px] font-semibold text-emerald-700 block">iOS + Android</span>
-                    </div>
+                  <div onclick="copyText('MOMO')" title="Bấm để sao chép mã appCode 'MOMO'"
+                       class="p-3 rounded-2xl border border-emerald-200/80 bg-emerald-50/20 hover:bg-emerald-50/70 hover:border-emerald-400 hover:shadow-sm transition cursor-pointer flex flex-col items-center text-center group">
+                    <img src="/icons/momo.png" alt="MoMo" class="w-11 h-11 rounded-xl object-contain shadow-xs shrink-0 mb-2 transition group-hover:scale-105">
+                    <span class="font-bold text-xs text-slate-900 leading-tight">MoMo</span>
+                    <span class="text-[11px] text-slate-500 leading-tight mt-0.5 truncate w-full">Ví MoMo</span>
                   </div>
 
                   <!-- ZaloPay -->
-                  <div class="p-3 rounded-xl border border-emerald-200 bg-emerald-50/40 hover:bg-emerald-50 transition flex items-center gap-2.5">
-                    <img src="/icons/zalopay.png" alt="ZaloPay" class="w-8 h-8 rounded-lg object-contain bg-white p-1 border border-slate-200 shadow-sm shrink-0">
-                    <div class="min-w-0 flex-1">
-                      <div class="flex items-center justify-between gap-1">
-                        <span class="font-bold text-xs text-slate-900 truncate">ZaloPay</span>
-                        <code class="text-[10px] mono bg-emerald-100 text-emerald-800 px-1 py-0.5 rounded font-bold cursor-pointer" onclick="copyText('ZALOPAY')" title="Click để copy appCode">ZALOPAY</code>
-                      </div>
-                      <span class="text-[10px] text-slate-500 block truncate">Ví ZaloPay</span>
-                      <span class="text-[10px] font-semibold text-emerald-700 block">iOS + Android</span>
-                    </div>
+                  <div onclick="copyText('ZALOPAY')" title="Bấm để sao chép mã appCode 'ZALOPAY'"
+                       class="p-3 rounded-2xl border border-emerald-200/80 bg-emerald-50/20 hover:bg-emerald-50/70 hover:border-emerald-400 hover:shadow-sm transition cursor-pointer flex flex-col items-center text-center group">
+                    <img src="/icons/zalopay.png" alt="ZaloPay" class="w-11 h-11 rounded-xl object-contain shadow-xs shrink-0 mb-2 transition group-hover:scale-105">
+                    <span class="font-bold text-xs text-slate-900 leading-tight">ZaloPay</span>
+                    <span class="text-[11px] text-slate-500 leading-tight mt-0.5 truncate w-full">Ví ZaloPay</span>
                   </div>
                 </div>
               </div>
@@ -1474,7 +1439,9 @@ curl -X POST "https://vietqr.hiendev.io.vn/api/v1/vietqr-core/deeplink/intents" 
         }
       });
       if (tab === 'deeplink') {
-        switchDeeplinkSubTab('demo');
+        if (location.hash !== '#deeplink-docs') {
+          switchDeeplinkSubTab('demo');
+        }
         populateDemoBankBinSelect();
         populateDemoAppSelect();
         generateDemoDeeplink();
@@ -2170,6 +2137,10 @@ curl -X POST "https://vietqr.hiendev.io.vn/api/v1/vietqr-core/deeplink/intents" 
       await loadDeeplinkApps();
       await loadBanks();
       generateQR();
+      if (location.hash === '#deeplink' || location.hash === '#deeplink-docs') {
+        switchTab('deeplink');
+        if (location.hash === '#deeplink-docs') switchDeeplinkSubTab('docs');
+      }
     });
   </script>
 </body>
