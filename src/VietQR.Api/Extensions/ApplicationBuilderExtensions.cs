@@ -73,17 +73,18 @@ public static class ApplicationBuilderExtensions
             }
         });
 
-        var deeplinkIconsPath = Path.GetFullPath(Path.Combine(app.Environment.ContentRootPath, "..", "VietQR.Deeplink", "wwwroot", "icons"));
-        if (Directory.Exists(deeplinkIconsPath))
+        var iconsDir = Path.Combine(app.Environment.WebRootPath ?? "wwwroot", "_content", "VietQR.Deeplink", "icons");
+        if (!Directory.Exists(iconsDir))
+        {
+            iconsDir = Path.Combine(app.Environment.ContentRootPath, "..", "VietQR.Deeplink", "wwwroot", "icons");
+        }
+
+        if (Directory.Exists(iconsDir))
         {
             app.UseStaticFiles(new StaticFileOptions
             {
-                FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(deeplinkIconsPath),
-                RequestPath = "/icons",
-                OnPrepareResponse = ctx =>
-                {
-                    ctx.Context.Response.Headers.CacheControl = "public, max-age=31536000, immutable";
-                }
+                FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(Path.GetFullPath(iconsDir)),
+                RequestPath = "/icons"
             });
         }
 
