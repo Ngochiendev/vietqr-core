@@ -143,7 +143,9 @@ Mỗi phần tử [`DeeplinkBankAppInfo`](https://github.com/Ngochiendev/vietqr-
             "shortName": "MBBank",
             "appName": "MB Bank",
             "logo": "https://deeplink.example.com/icons/mb.png",
-            "supportsAutofill": true
+            "supportsAutofill": true,
+            "supportsIos": true,
+            "supportsAndroid": true
         },
         {
             "appCode": "VCB",
@@ -151,7 +153,9 @@ Mỗi phần tử [`DeeplinkBankAppInfo`](https://github.com/Ngochiendev/vietqr-
             "shortName": "Vietcombank",
             "appName": "VCB Digibank",
             "logo": "https://deeplink.example.com/icons/vcb.png",
-            "supportsAutofill": false
+            "supportsAutofill": false,
+            "supportsIos": true,
+            "supportsAndroid": true
         }
     ]
 }
@@ -160,13 +164,15 @@ Mỗi phần tử [`DeeplinkBankAppInfo`](https://github.com/Ngochiendev/vietqr-
 ### Cách 2: Gọi trực tiếp qua HTTP REST API
 
 ```http
-GET https://deeplink.yourdomain.com/v1/apps
+GET https://vietqr.hiendev.io.vn/api/v1/vietqr-core/deeplink/apps
 ```
 
-_(Hoặc qua dịch vụ `VietQR.Api`: `GET /api/v1/vietqr-core/deeplink/apps`)_
+Hệ thống sẽ trả về danh mục ngân hàng kèm logo, mã BIN và cờ `supportsAutofill` (`true` nếu hỗ trợ tự điền dữ liệu, `false` nếu chỉ mở ứng dụng).
 
-Hệ thống sẽ trả về danh mục ngân hàng kèm logo, mã BIN và cờ `supportsAutofill` (`true` nếu hỗ trợ tự điền).
-
+> **Lưu ý về cơ chế Deeplink:**
+> - **Nhóm 1 (`supportsAutofill = true`)**: Mở app + **tự động điền sẵn STK, số tiền, nội dung** vào màn hình chuyển khoản (Hiện có 7 app: BIDV, MB, OCB, TPBank, CAKE, MoMo, ZaloPay).  
+> - **Nhóm 2 (`supportsAutofill = false`)**: **Vẫn là Deeplink mở thẳng ứng dụng ngân hàng** trên thiết bị (dẫn vào app hoặc màn hình quét mã QR/chuyển tiền), không tự điền sẵn dữ liệu.  
+>
 > 💡 **Mẹo truyền mã:** Khi gọi `ToDeeplinkUrlAsync(_deeplinkClient, appCode)` hoặc `CreateIntentAsync(appCode, qrContent)`, bạn có thể truyền linh hoạt bất kỳ định danh nào: mã `appCode` (VD: `"MB"`), tên viết tắt `shortName` (VD: `"MBBank"`), mã `BIN` 6 số chuẩn NAPAS (VD: `"970422"`), hoặc bí danh `aliases` mà không phân biệt chữ hoa/thường.
 
 ---

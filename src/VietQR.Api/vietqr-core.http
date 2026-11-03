@@ -87,9 +87,9 @@ Accept: application/json
 {
   "bankBin": "970422",
   "accountNo": "056789799999",
-  "amount": "50000",
+  "amount": "5000",
   "description": "thanh toan don hang",
-  "accountName": "NGUYEN VAN A",
+  "accountName": "VO NGOC HIEN",
   "template": "compact",
   "serviceType": "account",
   "format": "png",

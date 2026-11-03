@@ -38,7 +38,7 @@ public class VietQrGenerateRequest
     /// <summary>
     /// Tên chủ tài khoản người thụ hưởng (tùy chọn, hiển thị khi dùng mẫu 'print').
     /// </summary>
-    /// <example>NGUYEN VAN A</example>
+    /// <example>VO NGOC HIEN</example>
     [JsonPropertyName("accountName")]
     public string? AccountName { get; set; }
 
