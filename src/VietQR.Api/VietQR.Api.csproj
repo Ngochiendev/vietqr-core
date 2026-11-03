@@ -40,7 +40,4 @@
     <ProjectReference Include="..\VietQR.Deeplink\VietQR.Deeplink.csproj" />
   </ItemGroup>
 
-  <ItemGroup Condition="Exists('..\VietQR.Deeplink\wwwroot\icons')">
-    <Content Include="..\VietQR.Deeplink\wwwroot\icons\**" Link="wwwroot\icons\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
-  </ItemGroup>
 </Project>
