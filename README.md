@@ -8,7 +8,7 @@
 
 <p align="center">
   <b>Giải pháp mã nguồn mở cho thanh toán VietQR (NAPAS247 &amp; EMVCo) trên nền tảng .NET</b><br>
-  Danh mục 76+ ngân hàng &amp; font Unicode nhúng sẵn trong DLL &bull; Render PNG / WebP / SVG &bull; Giải mã từ chuỗi hoặc ảnh
+  Danh mục 76+ ngân hàng nhúng sẵn &bull; Render PNG / WebP / SVG &bull; Giải mã 2 chiều &bull; Deeplink mở 43+ App ngân hàng
 </p>
 
 <p align="center">
@@ -86,22 +86,31 @@ dotnet run --project src/VietQR.Api
 Mở trình duyệt truy cập Swagger UI:
 👉 **`http://localhost:5000/swagger`** (hoặc port hiển thị trên console).
 
+> 🌐 **Public Gateway / Demo URL:** `https://vietqr.hiendev.io.vn`  
+> *(Bạn có thể gọi trực tiếp public server này để test, hoặc thay bằng domain/localhost khi tự host)*
+
 ### Các Endpoint chính:
 
 - **Tạo mã QR & Render ảnh:**
-  `GET /api/v1/qr/generate?bin=970422&accountNo=056789799999&amount=2000&description=Thanh+toan+cafe`
-- **Tra cứu danh sách ngân hàng thành viên:**
-  `GET /api/v1/banks`
+  `GET https://vietqr.hiendev.io.vn/api/v1/vietqr-core/generate?bin=970422&accountNo=056789799999&amount=2000&description=Thanh+toan+cafe`
+- **Tạo link Deeplink mở app ngân hàng:**
+  `POST https://vietqr.hiendev.io.vn/api/v1/vietqr-core/deeplink/intents` (Body JSON: `{"appCode": "MB", "qrCode": "..."}`)
+- **Tra cứu danh sách ngân hàng & App hỗ trợ:**
+  `GET https://vietqr.hiendev.io.vn/api/v1/vietqr-core/banks` hoặc `GET https://vietqr.hiendev.io.vn/api/v1/vietqr-core/deeplink/apps`
 
 ---
 
 ## 📦 Sử Dụng Package NuGet Trong Ứng Dụng Khác
 
 ```bash
+# Thư viện core: Sinh chuỗi EMVCo & render ảnh offline
 dotnet add package VietQR.Core
+
+# Thư viện mở rộng: Tạo link deeplink mở app ngân hàng
+dotnet add package VietQR.Deeplink.Client
 ```
 
-👉 **Hướng dẫn chi tiết dành cho package (ảnh + code mẫu đầy đủ):** [src/VietQR.Core/README.md](src/VietQR.Core/README.md) — nội dung này cũng hiển thị trên trang [NuGet.org/packages/VietQR.Core](https://www.nuget.org/packages/VietQR.Core).
+👉 **Hướng dẫn chi tiết:** [VietQR.Core README](src/VietQR.Core/README.md) &bull; [VietQR.Deeplink.Client README](src/VietQR.Deeplink.Client/README.md)
 
 ---
 
@@ -240,6 +249,47 @@ await imageService.RenderToStreamAsync(payload, httpContext.Response.Body,
     new QrRenderOptions { Format = QrImageFormat.Webp });
 ```
 
+### 5. Tạo link Deeplink mở App Ngân hàng (`VietQR.Deeplink.Client`)
+
+Hỗ trợ tạo link mở thẳng 43+ ứng dụng ngân hàng/ví điện tử trên thiết bị di động (trong đó 7 app như MB, BIDV, TPBank, MoMo, ZaloPay... tự điền sẵn thông tin chuyển khoản):
+
+```csharp
+using VietQR.Core;
+using VietQR.Deeplink.Client;
+
+// Đăng ký DI trong Program.cs: builder.Services.AddVietQrDeeplink();
+// Nhận vào appCode ("MB"), shortName ("MBBank") hoặc mã BIN ("970422")
+var intent = await vietQr.ToDeeplinkUrlAsync(deeplinkClient, "MB", cancellationToken);
+
+if (intent != null)
+{
+    Console.WriteLine($"Link mở app: {intent.Url}"); // Dẫn vào app thanh toán
+}
+```
+
+> 💡 **Không dùng .NET / Client SDK?** Bạn có thể gọi trực tiếp qua REST API (sử dụng server public `https://vietqr.hiendev.io.vn`):
+> ```http
+> POST https://vietqr.hiendev.io.vn/api/v1/vietqr-core/deeplink/intents
+> Content-Type: application/json
+> 
+> {
+>   "appCode": "MB",
+>   "qrCode": "00020101021238570010A0000007270127000697042201120567897999990208QRIBFTTA5303704540420005802VN62180814thanh toan test6304xxxx"
+> }
+> ```
+> 
+> **Response mẫu:**
+> ```json
+> {
+>   "code": "00",
+>   "desc": "success",
+>   "data": {
+>     "url": "https://vietqr.hiendev.io.vn/p/x8K2mN9...",
+>     "expiresInSeconds": 300
+>   }
+> }
+> ```
+
 ---
 
 ## 🔌 Tích Hợp ASP.NET Core (Dependency Injection)
@@ -247,11 +297,15 @@ await imageService.RenderToStreamAsync(payload, httpContext.Response.Body,
 ```csharp
 // Program.cs
 using VietQR.Core;
+using VietQR.Deeplink.Client;
 
 builder.Services.AddVietQrCore(options =>
 {
     options.DefaultTemplate = "compact";
 });
+
+// Tùy chọn: Đăng ký Deeplink Client nếu cần mở app ngân hàng
+builder.Services.AddVietQrDeeplink();
 ```
 
 ```csharp
