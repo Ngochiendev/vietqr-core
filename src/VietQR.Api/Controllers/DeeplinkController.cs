@@ -91,6 +91,7 @@ public class DeeplinkController : ControllerBase
                 return NotFound(ApiResponse<object>.Error("04", "Không hỗ trợ mở ứng dụng này hoặc yêu cầu bị từ chối."));
             }
 
+#if HAS_VIETQR_DEEPLINK
             var forwardedHost = Request.Headers["X-Forwarded-Host"].FirstOrDefault();
             var forwardedProto = Request.Headers["X-Forwarded-Proto"].FirstOrDefault();
             var currentHost = !string.IsNullOrWhiteSpace(forwardedHost) ? forwardedHost : (Request.Host.HasValue ? Request.Host.Value : null);
@@ -101,6 +102,7 @@ public class DeeplinkController : ControllerBase
             {
                 intent.Url = $"{currentScheme}://{currentHost}{intentUri.PathAndQuery}";
             }
+#endif
 
             Response.Headers.CacheControl = "no-store";
             return Ok(ApiResponse<DeeplinkIntentResult>.Success(intent));
